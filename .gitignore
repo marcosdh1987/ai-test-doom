@@ -80,5 +80,3 @@ notebooks/data/experiments/*
 .ipynb_checkpoints
 .pylintrc
 
-# Documentación personalizada
-copilot-instructions.md
