@@ -61,35 +61,37 @@ generate-requirements:
 format:
 	@echo "🎨 Formateando código con black e isort..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && black src/ app/ tests/ --line-length 88
-	@. $(VENV_DIR)/bin/activate && isort src/ app/ tests/ --profile black
-	@echo "✅ Código formateado!"
+	@. $(VENV_DIR)/bin/activate && black src/ tests/ --line-length 88
+	@. $(VENV_DIR)/bin/activate && isort src/ tests/ --profile black
+	@echo "🧹 Limpiando outputs de notebooks..."
+	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
+	@echo "✅ Código formateado y notebooks limpios!"
 
 # Revisar calidad del código con múltiples herramientas
 lint:
 	@echo "🔍 Ejecutando análisis de calidad del código..."
 	@if [ ! -d .venv ]; then make install; fi
 	@echo "🚀 Ruff (linter rápido)..."
-	@. $(VENV_DIR)/bin/activate && ruff check src/ app/ tests/
+	@. $(VENV_DIR)/bin/activate && ruff check src/ tests/
 	@echo " Bandit (seguridad)..."
-	@. $(VENV_DIR)/bin/activate && bandit -r src/ app/ -f json -o security-report.json -ll -q || true
-	@. $(VENV_DIR)/bin/activate && bandit -r src/ app/ -ll || true
+	@. $(VENV_DIR)/bin/activate && bandit -r src/ tests/ -f json -o security-report.json -ll -q || true
+	@. $(VENV_DIR)/bin/activate && bandit -r src/ tests/ -ll || true
 	@echo "✅ Análisis de calidad completado!"
 
 # Revisar solo con ruff (más rápido para desarrollo)
 lint-fast:
 	@echo "⚡ Análisis rápido con ruff..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && ruff check src/ app/ tests/
+	@. $(VENV_DIR)/bin/activate && ruff check src/ tests/
 	@echo "✅ Análisis rápido completado!"
 
 # Arreglar automáticamente problemas de linting cuando sea posible
 fix:
 	@echo "🔧 Arreglando problemas automáticamente..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ app/ tests/
-	@. $(VENV_DIR)/bin/activate && black src/ app/ tests/ --line-length 88
-	@. $(VENV_DIR)/bin/activate && isort src/ app/ tests/ --profile black
+	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/
+	@. $(VENV_DIR)/bin/activate && black src/ tests/ --line-length 88
+	@. $(VENV_DIR)/bin/activate && isort src/ tests/ --profile black
 	@echo "✅ Problemas arreglados automáticamente!"
 
 # =============================================================================
