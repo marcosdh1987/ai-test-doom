@@ -57,12 +57,12 @@ generate-requirements:
 # CALIDAD DE CÓDIGO Y LINTING
 # =============================================================================
 
-# Formatear código automáticamente con black e isort
+# Formatear código automáticamente con ruff
 format:
-	@echo "🎨 Formateando código con black e isort..."
+	@echo "🎨 Formateando código con ruff..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && black src/ tests/ --line-length 88
-	@. $(VENV_DIR)/bin/activate && isort src/ tests/ --profile black
+	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
+	@. $(VENV_DIR)/bin/activate && ruff check --select I --fix src/ tests/
 	@echo "🧹 Limpiando outputs de notebooks..."
 	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
 	@echo "✅ Código formateado y notebooks limpios!"
@@ -90,8 +90,7 @@ fix:
 	@echo "🔧 Arreglando problemas automáticamente..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/
-	@. $(VENV_DIR)/bin/activate && black src/ tests/ --line-length 88
-	@. $(VENV_DIR)/bin/activate && isort src/ tests/ --profile black
+	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
 	@echo "✅ Problemas arreglados automáticamente!"
 
 # =============================================================================
@@ -199,10 +198,10 @@ help:
 	@echo "  make generate-requirements Generar requirements.txt desde entorno actual"
 	@echo ""
 	@echo "Calidad de Código:"
-	@echo "  make format               Formatear código automáticamente (black + isort)"
-	@echo "  make lint                 Análisis completo de calidad (ruff + mypy + bandit)"
+	@echo "  make format               Formatear código automáticamente (ruff format + imports)"
+	@echo "  make lint                 Análisis completo de calidad (ruff + bandit)"
 	@echo "  make lint-fast            Análisis rápido con ruff solamente"
-	@echo "  make fix                  Arreglar problemas automáticamente"
+	@echo "  make fix                  Arreglar problemas automáticamente (ruff check + format)"
 	@echo "  make ci                   Pipeline completo: format + lint + test"
 	@echo ""
 	@echo "Pruebas:"
