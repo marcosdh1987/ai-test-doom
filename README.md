@@ -12,12 +12,14 @@ A modern Python base project template with best practices for machine learning a
 - **Makefile** commands for common development tasks
 - **Testing** setup with pytest and coverage
 - **Docker** support for containerization
+- **Dev Containers** ready for consistent development environments
 
 ## 📋 Prerequisites
 
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) - Fast Python package installer
 - Make
+- **Optional**: Docker Desktop & VS Code Dev Containers extension
 
 ### Install uv
 
@@ -58,7 +60,24 @@ After running `make install`, a kernel named "Python (uv)" will be automatically
 ```bash
 # Start Jupyter
 uv run jupyter lab
-```
+```� Dev Containers (Recommended)
+
+This project is configured to run inside a **Dev Container**. This guarantees that you are working in the exact same environment as production (Linux), regardless of your local OS (macOS, Windows).
+
+### How to use
+
+1. Install **Docker Desktop**.
+2. Install the **Dev Containers** extension in VS Code.
+3. Open the project in VS Code.
+4. Click on the pop-up **"Reopen in Container"** (or run the command from the Palette).
+
+### Benefits
+
+- **Zero Setup**: The container installs Python, `uv`, and all dependencies automatically.
+- **Production Parity**: Develop on Linux, deploy on Linux.
+- **Jupyter Integration**: Notebooks run seamlessly inside the container, using the container's kernel.
+
+## �
 
 ## 📦 Managing Dependencies
 
