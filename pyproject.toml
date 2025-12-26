@@ -129,3 +129,10 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.2",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
