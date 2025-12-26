@@ -28,30 +28,47 @@ KERNEL_NAME=ai-kernel
 # CONFIGURACIÓN DEL ENTORNO DE DESARROLLO
 # =============================================================================
 
-# Configurar entorno virtual e instalar todas las dependencias
+# Configurar entorno virtual e instalar todas las dependencias usando uv.lock
 install:
-	@echo "🚀 Creando entorno virtual con uv..."
+	@echo "🚀 Configurando proyecto con uv..."
 	@if ! command -v uv &> /dev/null; then \
-		echo "❌ uv no está instalado. Por favor instálalo con: pip install uv"; \
-		exit 1; \
+		echo "❌ uv no está instalado. Instalando..."; \
+		pip install uv; \
 	fi
-	@if [ ! -d "$(VENV_DIR)" ]; then \
-		uv venv $(VENV_DIR) --python=$(PYTHON_VERSION); \
-	else \
-		echo "✅ El entorno virtual ya existe."; \
-	fi
-	@echo "📦 Instalando dependencias con uv pip..."
-	@. $(VENV_DIR)/bin/activate && uv pip install -r requirements.in && uv pip install ipykernel 
+	@echo "📌 Anclando versión de Python $(PYTHON_VERSION)..."
+	@uv python pin $(PYTHON_VERSION)
+	@echo "📦 Sincronizando dependencias (creando .venv si no existe)..."
+	@uv sync
 	@echo "🔌 Registrando kernel de Jupyter..."
-	@$(VENV_DIR)/bin/python -m ipykernel install --user --name=$(KERNEL_NAME) --display-name="Python (uv)"
-	@echo "✅ Entorno virtual uv listo para Jupyter Notebook."
+	@uv run python -m ipykernel install --user --name=$(KERNEL_NAME) --display-name="Python (uv)"
+	@echo "✅ Entorno listo! Usa 'source .venv/bin/activate' para activar."
 
-# Generar requirements.txt desde el entorno actual
+# Agregar una nueva librería al proyecto (reemplaza editar requirements.in)
+# Uso: make add PKG=tensorflow
+add:
+	@echo "📦 Agregando paquete $(PKG)..."
+	@uv add $(PKG)
+	@echo "✅ Paquete agregado y lockfile actualizado."
+
+# Remover una librería del proyecto
+# Uso: make remove PKG=tensorflow
+remove:
+	@echo "🗑️ Removiendo paquete $(PKG)..."
+	@uv remove $(PKG)
+	@echo "✅ Paquete removido y lockfile actualizado."
+
+# Generar requirements.txt (para compatibilidad legacy o despliegues simples)
 generate-requirements:
-	@echo "📋 Generando requirements.txt desde el entorno .uv con uv pip freeze..."
-	@command -v uv >/dev/null 2>&1 || pip install --user uv
-	@. $(VENV_DIR)/bin/activate && uv pip freeze > requirements.txt
+	@echo "📋 Exportando requirements.txt desde uv.lock..."
+	@uv export --format requirements-txt > requirements.txt
 	@echo "✅ requirements.txt generado"
+
+# Configurar pre-commit hooks (Recomendado correr una vez)
+setup-hooks:
+	@echo "🪝 Instalando pre-commit hooks..."
+	@if [ ! -d .venv ]; then make install; fi
+	@uv run pre-commit install
+	@echo "✅ Hooks instalados!"
 
 # =============================================================================
 # CALIDAD DE CÓDIGO Y LINTING
