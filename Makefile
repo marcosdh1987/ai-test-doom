@@ -108,7 +108,9 @@ fix:
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/
 	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
-	@echo "✅ Problemas arreglados automáticamente!"
+	@echo "🧹 Limpiando outputs de notebooks..."
+	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
+	@echo "✅ Problemas arreglados y código limpio!"
 
 # =============================================================================
 # PRUEBAS DEL SISTEMA
