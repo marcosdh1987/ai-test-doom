@@ -106,11 +106,19 @@ lint-fast:
 fix:
 	@echo "🔧 Arreglando problemas automáticamente..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/
+	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/ || echo "⚠️  Quedaron problemas pendientes de revisión manual."
 	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
 	@echo "🧹 Limpiando outputs de notebooks..."
 	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
-	@echo "✅ Problemas arreglados y código limpio!"
+	@echo "✅ Código formateado y limpiezas aplicadas!"
+
+# Arreglar problemas agresivamente (incluye fixes inseguros)
+fix-force:
+	@echo "🚨 Aplicando arreglos agresivos (unsafe)..."
+	@if [ ! -d .venv ]; then make install; fi
+	@. $(VENV_DIR)/bin/activate && ruff check --fix --unsafe-fixes src/ tests/ || echo "⚠️  Quedaron problemas pendientes."
+	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
+	@echo "✅ Arreglos agresivos aplicados!"
 
 # =============================================================================
 # PRUEBAS DEL SISTEMA

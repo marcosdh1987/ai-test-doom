@@ -121,17 +121,21 @@ make generate-requirements
 The project provides three main levels of code quality checks:
 
 1. **`make fix` (Recommended)**: The "do it all" command. It auto-formats code, sorts imports, removes unused imports, fixes linting issues, and cleans Jupyter notebooks. Run this frequently!
-2. **`make lint`**: Runs strict static analysis and security checks (Bandit). It does not modify files. Use this to verify your code before pushing.
-3. **`make format`**: A lighter version of `fix`. Only formats code and sorts imports, but doesn't remove unused code or fix other linting issues.
+2. **`make fix-force`**: Same as `fix`, but applies "unsafe" fixes. Use with caution (e.g., it might remove imports used only in `try/except` blocks).
+3. **`make lint`**: Runs strict static analysis and security checks (Bandit). It does not modify files. Use this to verify your code before pushing.
+4. **`make format`**: A lighter version of `fix`. Only formats code and sorts imports.
 
 ```bash
-# 1. Clean everything (Format + Fix Imports + Clean Notebooks)
+# 1. Clean everything (Safe mode)
 make fix
 
-# 2. Verify quality and security (Read-only check)
+# 2. Clean everything (Aggressive mode - check changes after!)
+make fix-force
+
+# 3. Verify quality and security (Read-only check)
 make lint
 
-# 3. Run full CI pipeline (Fix + Lint + Test)
+# 4. Run full CI pipeline (Fix + Lint + Test)
 make ci
 ```
 
