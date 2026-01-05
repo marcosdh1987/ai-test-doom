@@ -1,22 +1,22 @@
 # =============================================================================
-# Este Makefile proporciona comandos para configurar, ejecutar y trabajar con
-# el agente especializado en preparación de consultas médicas usando SBAR.
+# This Makefile provides commands to configure, run, and work with
+# the specialized agent for medical consultation preparation using SBAR.
 #
-# Características principales:
-# - Gestión de entorno virtual con uv
-# - Herramientas de linting y formateo para calidad de código
-# - Servidor de desarrollo y producción
-# - Modo CLI interactivo y de pregunta única
-# - Pruebas en lote contra la API
-# - Soporte de contenedorización Docker
+# Main features:
+# - Virtual environment management with uv
+# - Linting and formatting tools for code quality
+# - Development and production server
+# - Interactive CLI and single question mode
+# - Batch testing against the API
+# - Docker containerization support
 #
-# Uso básico:
-#   make install          # Configurar entorno de desarrollo
-#   make format           # Formatear código automáticamente
-#   make lint             # Revisar calidad del código
-#   make test             # Ejecutar pruebas
-#   make run-api          # Iniciar servidor API
-#   make build-api        # Construir imagen Docker de la API
+# Basic usage:
+#   make install          # Set up development environment
+#   make format           # Automatically format code
+#   make lint             # Check code quality
+#   make test             # Run tests
+#   make run-api          # Start API server
+#   make build-api        # Build API Docker image
 # =============================================================================
 
 export PYTHON_VERSION=3.11.9
@@ -25,251 +25,251 @@ VENV_DIR ?= .venv
 KERNEL_NAME=ai-kernel
 
 # =============================================================================
-# CONFIGURACIÓN DEL ENTORNO DE DESARROLLO
+# DEVELOPMENT ENVIRONMENT CONFIGURATION
 # =============================================================================
 
-# Configurar entorno virtual e instalar todas las dependencias usando uv.lock
+# Set up virtual environment and install all dependencies using uv.lock
 install:
-	@echo "🚀 Configurando proyecto con uv..."
+	@echo "🚀 Configuring project with uv..."
 	@if ! command -v uv &> /dev/null; then \
-		echo "❌ uv no está instalado. Instalando..."; \
+		echo "❌ uv is not installed. Installing..."; \
 		pip install uv; \
 	fi
-	@echo "📌 Anclando versión de Python $(PYTHON_VERSION)..."
+	@echo "📌 Pinning Python version $(PYTHON_VERSION)..."
 	@uv python pin $(PYTHON_VERSION)
-	@echo "📦 Sincronizando dependencias (creando .venv si no existe)..."
+	@echo "📦 Syncing dependencies (creating .venv if it doesn't exist)..."
 	@uv sync
-	@echo "🔌 Registrando kernel de Jupyter..."
+	@echo "🔌 Registering Jupyter kernel..."
 	@uv run python -m ipykernel install --user --name=$(KERNEL_NAME) --display-name="Python (uv)"
-	@echo "✅ Entorno listo! Usa 'source .venv/bin/activate' para activar."
+	@echo "✅ Environment ready! Use 'source .venv/bin/activate' to activate."
 
-# Agregar una nueva librería al proyecto (reemplaza editar requirements.in)
-# Uso: make add PKG=tensorflow
+# Add a new library to the project (replaces editing requirements.in)
+# Usage: make add PKG=tensorflow
 add:
-	@echo "📦 Agregando paquete $(PKG)..."
+	@echo "📦 Adding package $(PKG)..."
 	@uv add $(PKG)
-	@echo "✅ Paquete agregado y lockfile actualizado."
+	@echo "✅ Package added and lockfile updated."
 
-# Remover una librería del proyecto
-# Uso: make remove PKG=tensorflow
+# Remove a library from the project
+# Usage: make remove PKG=tensorflow
 remove:
-	@echo "🗑️ Removiendo paquete $(PKG)..."
+	@echo "🗑️ Removing package $(PKG)..."
 	@uv remove $(PKG)
-	@echo "✅ Paquete removido y lockfile actualizado."
+	@echo "✅ Package removed and lockfile updated."
 
-# Generar requirements.txt (para compatibilidad legacy o despliegues simples)
+# Generate requirements.txt (for legacy compatibility or simple deployments)
 generate-requirements:
-	@echo "📋 Exportando requirements.txt desde uv.lock..."
+	@echo "📋 Exporting requirements.txt from uv.lock..."
 	@uv export --format requirements-txt > requirements.txt
-	@echo "✅ requirements.txt generado"
+	@echo "✅ requirements.txt generated"
 
-# Configurar pre-commit hooks (Recomendado correr una vez)
+# Set up pre-commit hooks (Recommended to run once)
 setup-hooks:
-	@echo "🪝 Instalando pre-commit hooks..."
+	@echo "🪝 Installing pre-commit hooks..."
 	@if [ ! -d .venv ]; then make install; fi
 	@uv run pre-commit install
-	@echo "✅ Hooks instalados!"
+	@echo "✅ Hooks installed!"
 
 # =============================================================================
-# CALIDAD DE CÓDIGO Y LINTING
+# CODE QUALITY AND LINTING
 # =============================================================================
 
-# Formatear código automáticamente con ruff
+# Automatically format code with ruff
 format:
-	@echo "🎨 Formateando código con ruff..."
+	@echo "🎨 Formatting code with ruff..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
 	@. $(VENV_DIR)/bin/activate && ruff check --select I --fix src/ tests/
-	@echo "🧹 Limpiando outputs de notebooks..."
-	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
-	@echo "✅ Código formateado y notebooks limpios!"
+	@echo "🧹 Cleaning notebook outputs..."
+	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No notebooks found or nbstripout not installed"
+	@echo "✅ Code formatted and notebooks cleaned!"
 
-# Revisar calidad del código con múltiples herramientas
+# Check code quality with multiple tools
 lint:
-	@echo "🔍 Ejecutando análisis de calidad del código..."
+	@echo "🔍 Running code quality analysis..."
 	@if [ ! -d .venv ]; then make install; fi
-	@echo "🚀 Ruff (linter rápido)..."
+	@echo "🚀 Ruff (fast linter)..."
 	@. $(VENV_DIR)/bin/activate && ruff check src/ tests/
-	@echo " Bandit (seguridad)..."
+	@echo " Bandit (security)..."
 	@. $(VENV_DIR)/bin/activate && bandit -r src/ tests/ -f json -o security-report.json -ll -q || true
 	@. $(VENV_DIR)/bin/activate && bandit -r src/ tests/ -ll || true
-	@echo "✅ Análisis de calidad completado!"
+	@echo "✅ Quality analysis completed!"
 
-# Revisar solo con ruff (más rápido para desarrollo)
+# Check only with ruff (faster for development)
 lint-fast:
-	@echo "⚡ Análisis rápido con ruff..."
+	@echo "⚡ Fast analysis with ruff..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && ruff check src/ tests/
-	@echo "✅ Análisis rápido completado!"
+	@echo "✅ Fast analysis completed!"
 
-# Arreglar automáticamente problemas de linting cuando sea posible
+# Automatically fix linting issues when possible
 fix:
-	@echo "🔧 Arreglando problemas automáticamente..."
+	@echo "🔧 Fixing issues automatically..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/ || echo "⚠️  Quedaron problemas pendientes de revisión manual."
+	@. $(VENV_DIR)/bin/activate && ruff check --fix src/ tests/ || echo "⚠️  Some issues remain for manual review."
 	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
-	@echo "🧹 Limpiando outputs de notebooks..."
-	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No se encontraron notebooks o nbstripout no instalado"
-	@echo "✅ Código formateado y limpiezas aplicadas!"
+	@echo "🧹 Cleaning notebook outputs..."
+	@. $(VENV_DIR)/bin/activate && nbstripout notebooks/*.ipynb 2>/dev/null || echo "⚠️  No notebooks found or nbstripout not installed"
+	@echo "✅ Code formatted and cleanups applied!"
 
-# Arreglar problemas agresivamente (incluye fixes inseguros)
+# Fix issues aggressively (includes unsafe fixes)
 fix-force:
-	@echo "🚨 Aplicando arreglos agresivos (unsafe)..."
+	@echo "🚨 Applying aggressive fixes (unsafe)..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && ruff check --fix --unsafe-fixes src/ tests/ || echo "⚠️  Quedaron problemas pendientes."
+	@. $(VENV_DIR)/bin/activate && ruff check --fix --unsafe-fixes src/ tests/ || echo "⚠️  Issues remain."
 	@. $(VENV_DIR)/bin/activate && ruff format src/ tests/
-	@echo "✅ Arreglos agresivos aplicados!"
+	@echo "✅ Aggressive fixes applied!"
 
 # =============================================================================
-# PRUEBAS DEL SISTEMA
+# SYSTEM TESTING
 # =============================================================================
 
-# Ejecutar todas las pruebas con coverage
+# Run all tests with coverage
 test:
-	@echo "🧪 Ejecutando pruebas con coverage..."
+	@echo "🧪 Running tests with coverage..."
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src pytest tests/ --cov=src --cov-report=html --cov-report=term-missing || echo "⚠️  No se encontraron tests para ejecutar"
-	@echo "✅ Pruebas completadas! Ver reporte en htmlcov/index.html"
+	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src pytest tests/ --cov=src --cov-report=html --cov-report=term-missing || echo "⚠️  No tests found to run"
+	@echo "✅ Tests completed! See report in htmlcov/index.html"
 
-# Ejecutar pruebas específicas
+# Run specific tests
 test-unit:
-	@echo "🧪 Ejecutando pruebas unitarias..."
+	@echo "🧪 Running unit tests..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src pytest tests/ -v
 
 # =============================================================================
-# EJECUCIÓN DE LA APLICACIÓN
+# APPLICATION EXECUTION
 # =============================================================================
 
-# Iniciar servidor de desarrollo LangGraph
+# Start LangGraph development server
 run-dev:
-	@echo "🚀 Iniciando servidor de desarrollo..."
+	@echo "🚀 Starting development server..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && langgraph dev
 
-# Iniciar servidor FastAPI
+# Start FastAPI server
 run-api:
-	@echo "🚀 Iniciando servidor API..."
+	@echo "🚀 Starting API server..."
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD} uvicorn api:app --reload --host 0.0.0.0 --port 8008 --log-level debug
 
-# Ejecutar CLI con una pregunta predefinida
+# Run CLI with a predefined question
 run-question:
-	@echo "🚀 Ejecutando una pregunta única"
+	@echo "🚀 Running a single question"
 	@if [ ! -d .venv ]; then make install; fi
-	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src python main.py --question "Tengo dolor de cabeza frecuente, ¿me puedes ayudar a preparar mi consulta médica?"
+	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src python main.py --question "I have frequent headaches, can you help me prepare my medical consultation?"
 
-# Iniciar modo CLI interactivo
+# Start interactive CLI mode
 run-interactive:
-	@echo "🚀 Iniciando modo CLI interactivo"
+	@echo "🚀 Starting interactive CLI mode"
 	@if [ ! -d .venv ]; then make install; fi
 	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src python main.py --interactive
 
 # =============================================================================
-# CONSTRUCCIÓN Y DESPLIEGUE CON DOCKER
+# DOCKER BUILD AND DEPLOYMENT
 # =============================================================================
 
-# Variables de configuración Docker
-IMG_NAME ?= agente-medico
+# Docker configuration variables
+IMG_NAME ?= medical-agent
 IMAGE_TAG ?= latest
-CONTAINER_NAME ?= agente-medico-server
+CONTAINER_NAME ?= medical-agent-server
 API_PORT ?= 8008
 
-# Habilitar Docker BuildKit
+# Enable Docker BuildKit
 export DOCKER_BUILDKIT=1
 
-# Construir imagen Docker de la API
+# Build API Docker image
 build-api:
-	@echo "🔨 Construyendo imagen Docker FastAPI (usando Dockerfile.api)..."
+	@echo "🔨 Building FastAPI Docker image (using Dockerfile.api)..."
 	@docker build --platform=linux/amd64 -t ${IMG_NAME}:${IMAGE_TAG} -f Dockerfile.api .
-	@echo "✅ Imagen Docker FastAPI construida exitosamente!"
+	@echo "✅ FastAPI Docker image built successfully!"
 
-# Ejecutar contenedor Docker
+# Run Docker container
 run-api-docker:
-	@echo "🚀 Ejecutando contenedor Docker..."
+	@echo "🚀 Running Docker container..."
 	@docker run --platform=linux/amd64 -e ENV=production -d -p ${API_PORT}:${API_PORT} --env-file .env ${IMG_NAME}:${IMAGE_TAG}
-	@echo "✅ Contenedor Docker ejecutándose en http://localhost:${API_PORT}!"
+	@echo "✅ Docker container running at http://localhost:${API_PORT}!"
 
-# Construir sin cache
+# Build without cache
 build-fresh:
-	@echo "🔨 Construyendo imagen Docker sin cache..."
+	@echo "🔨 Building Docker image without cache..."
 	@docker build --no-cache --platform=linux/amd64 -t ${IMG_NAME}:${IMAGE_TAG} -f Dockerfile.api .
-	@echo "✅ Imagen Docker construida exitosamente!"
+	@echo "✅ Docker image built successfully!"
 
-# Detener contenedor Docker
+# Stop Docker container
 stop-docker:
-	@echo "🛑 Deteniendo contenedor Docker..."
+	@echo "🛑 Stopping Docker container..."
 	@docker stop ${CONTAINER_NAME} 2>/dev/null || true
 	@docker rm ${CONTAINER_NAME} 2>/dev/null || true
-	@echo "✅ Contenedor detenido!"
+	@echo "✅ Container stopped!"
 
 # =============================================================================
-# COMANDOS ÚTILES
+# USEFUL COMMANDS
 # =============================================================================
 
-# Comando de validación completa (CI/CD pipeline)
+# Full validation command (CI/CD pipeline)
 ci:
-	@echo "🚀 Ejecutando pipeline de CI completo..."
+	@echo "🚀 Running full CI pipeline..."
 	@make format
 	@make lint
 	@make test
-	@echo "✅ Pipeline de CI completado exitosamente!"
+	@echo "✅ CI pipeline completed successfully!"
 
-# Mostrar información de ayuda sobre comandos disponibles
+# Show help information about available commands
 help:
-	@echo "🏥 Agente de Preparación de Consultas Médicas - Comandos Disponibles:"
+	@echo "🏥 Medical Consultation Preparation Agent - Available Commands:"
 	@echo ""
-	@echo "Configuración de Desarrollo:"
-	@echo "  make install              Configurar entorno virtual y dependencias"
-	@echo "  make setup-hooks          Configurar hooks de pre-commit"
-	@echo "  make generate-requirements Generar requirements.txt desde entorno actual"
+	@echo "Development Setup:"
+	@echo "  make install              Set up virtual environment and dependencies"
+	@echo "  make setup-hooks          Set up pre-commit hooks"
+	@echo "  make generate-requirements Generate requirements.txt from current environment"
 	@echo ""
-	@echo "Calidad de Código:"
-	@echo "  make format               Formatear código automáticamente (ruff format + imports)"
-	@echo "  make lint                 Análisis completo de calidad (ruff + bandit)"
-	@echo "  make lint-fast            Análisis rápido con ruff solamente"
-	@echo "  make fix                  Arreglar problemas automáticamente (ruff check + format)"
-	@echo "  make ci                   Pipeline completo: format + lint + test"
+	@echo "Code Quality:"
+	@echo "  make format               Automatically format code (ruff format + imports)"
+	@echo "  make lint                 Full quality analysis (ruff + bandit)"
+	@echo "  make lint-fast            Fast analysis with ruff only"
+	@echo "  make fix                  Automatically fix issues (ruff check + format)"
+	@echo "  make ci                   Full pipeline: format + lint + test"
 	@echo ""
-	@echo "Pruebas:"
-	@echo "  make test                 Ejecutar todas las pruebas con coverage"
-	@echo "  make test-unit            Ejecutar solo pruebas unitarias"
-	@echo "  make run-batch-test       Ejecutar pruebas en lote contra API (dataset v1)"
-	@echo "  make run-batch-test-custom Ejecutar pruebas en lote con parámetros personalizados"
+	@echo "Testing:"
+	@echo "  make test                 Run all tests with coverage"
+	@echo "  make test-unit            Run unit tests only"
+	@echo "  make run-batch-test       Run batch tests against API (dataset v1)"
+	@echo "  make run-batch-test-custom Run batch tests with custom parameters"
 	@echo ""
-	@echo "Ejecución de Aplicación (Local):"
-	@echo "  make run-dev             Iniciar servidor de desarrollo LangGraph"
-	@echo "  make run-api             Iniciar servidor FastAPI"
-	@echo "  make run-question        Probar con pregunta médica predefinida"
-	@echo "  make run-interactive     Iniciar modo CLI interactivo"
+	@echo "Application Execution (Local):"
+	@echo "  make run-dev             Start LangGraph development server"
+	@echo "  make run-api             Start FastAPI server"
+	@echo "  make run-question        Test with predefined medical question"
+	@echo "  make run-interactive     Start interactive CLI mode"
 	@echo ""
 	@echo "Docker:"
-	@echo "  make build-api           Construir imagen Docker de la API"
-	@echo "  make build-fresh         Construir sin cache"
-	@echo "  make run-api-docker      Ejecutar API en contenedor Docker"
-	@echo "  make stop-docker         Detener contenedor Docker"
+	@echo "  make build-api           Build API Docker image"
+	@echo "  make build-fresh         Build without cache"
+	@echo "  make run-api-docker      Run API in Docker container"
+	@echo "  make stop-docker         Stop Docker container"
 	@echo ""
-	@echo "URLs de Servicios:"
+	@echo "Service URLs:"
 	@echo "  🚀 FastAPI: http://localhost:8008"
-	@echo "  📖 Documentación API: http://localhost:8008/docs"
-	@echo "  🔍 Descubrimiento de Agente: http://localhost:8008/.well-known/agent.json"
+	@echo "  📖 API Documentation: http://localhost:8008/docs"
+	@echo "  🔍 Agent Discovery: http://localhost:8008/.well-known/agent.json"
 	@echo ""
-	@echo "Utilidades:"
-	@echo "  make help                Mostrar este mensaje de ayuda"
-	@echo "  make clean               Limpiar archivos cache y generados"
+	@echo "Utilities:"
+	@echo "  make help                Show this help message"
+	@echo "  make clean               Clean cache and generated files"
 	@echo ""
 
-# Limpiar archivos generados y cache
+# Clean generated files and cache
 clean:
-	@echo "🧹 Limpiando..."
+	@echo "🧹 Cleaning..."
 	@rm -rf __pycache__ .pytest_cache htmlcov .coverage .mypy_cache .ruff_cache
 	@rm -f security-report.json
 	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	@echo "✅ Limpieza completada!"
+	@echo "✅ Cleanup completed!"
 
-# Establecer help como objetivo por defecto
+# Set help as default goal
 .DEFAULT_GOAL := help
 
-# Declarar objetivos phony
+# Declare phony targets
 .PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci
