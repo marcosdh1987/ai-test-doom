@@ -4,19 +4,22 @@ A modern Python base project template with best practices for machine learning a
 
 ## 🚀 Features
 
-- **Modern Python 3.11** setup with virtual environment management
+- **Modern Python 3.11** setup with `uv` for ultra-fast dependency management
+- **Reproducible Environments** using `uv.lock`
 - **Ruff** for ultra-fast linting and formatting (replaces Black, Flake8, isort, pyupgrade)
-- **Jupyter Notebooks** support with automated cleanup
+- **Jupyter Notebooks** support with automated cleanup (`nbstripout`)
+- **Pre-commit hooks** to ensure quality before committing
 - **Makefile** commands for common development tasks
 - **Testing** setup with pytest and coverage
-- **Security scanning** with Bandit
 - **Docker** support for containerization
+- **Dev Containers** ready for consistent development environments
 
 ## 📋 Prerequisites
 
-- Python 3.11.9+
+- Python 3.11+
 - [uv](https://github.com/astral-sh/uv) - Fast Python package installer
 - Make
+- **Optional**: Docker Desktop & VS Code Dev Containers extension
 
 ### Install uv
 
@@ -32,46 +35,108 @@ pip install uv
 
 ### 1. Setup Development Environment
 
+This command will install the specific Python version defined in the Makefile, create the virtual environment, and sync all dependencies from `uv.lock`.
+
 ```bash
-# Create virtual environment and install dependencies
+# Setup project
 make install
 
 # Activate virtual environment
 source .venv/bin/activate
 ```
 
-### 2. Code Quality
+### 2. Setup Git Hooks (Recommended)
+
+Install pre-commit hooks to automatically clean notebooks and format code before every commit.
 
 ```bash
-# Format code with Ruff
-make format
+make setup-hooks
+```
 
-# Run linting checks
-make lint
+### 3. Jupyter Notebooks
 
-# Auto-fix issues
+After running `make install`, a kernel named "Python (uv)" will be automatically registered.
+
+```bash
+# Start Jupyter
+uv run jupyter lab
+```� Dev Containers (Recommended)
+
+This project is configured to run inside a **Dev Container**. This guarantees that you are working in the exact same environment as production (Linux), regardless of your local OS (macOS, Windows).
+
+### How to use
+
+1. Install **Docker Desktop**.
+2. Install the **Dev Containers** extension in VS Code.
+3. Open the project in VS Code.
+4. Click on the pop-up **"Reopen in Container"** (or run the command from the Palette).
+
+### Benefits
+
+- **Zero Setup**: The container installs Python, `uv`, and all dependencies automatically.
+- **Production Parity**: Develop on Linux, deploy on Linux.
+- **Jupyter Integration**: Notebooks run seamlessly inside the container, using the container's kernel.
+
+## �
+
+## 📦 Managing Dependencies
+
+We use `uv` to manage dependencies in `pyproject.toml` and lock them in `uv.lock`.
+
+### Add a new library
+
+Instead of editing files manually, use the helper command:
+
+```bash
+# Add a package (e.g., tensorflow)
+make add PKG=tensorflow
+
+# Add a development dependency
+make add PKG="pytest --dev"
+```
+
+This will:
+1. Add the package to `pyproject.toml`
+2. Update `uv.lock`
+3. Install the package in your environment
+
+### Remove a library
+
+To remove a package you no longer need:
+
+```bash
+make remove PKG=tensorflow
+```
+
+### Generate requirements.txt
+
+If you need a `requirements.txt` for legacy systems or deployment:
+
+```bash
+make generate-requirements
+```
+
+## 🎯 Code Quality
+
+The project provides three main levels of code quality checks:
+
+1. **`make fix` (Recommended)**: The "do it all" command. It auto-formats code, sorts imports, removes unused imports, fixes linting issues, and cleans Jupyter notebooks. Run this frequently!
+2. **`make fix-force`**: Same as `fix`, but applies "unsafe" fixes. Use with caution (e.g., it might remove imports used only in `try/except` blocks).
+3. **`make lint`**: Runs strict static analysis and security checks (Bandit). It does not modify files. Use this to verify your code before pushing.
+4. **`make format`**: A lighter version of `fix`. Only formats code and sorts imports.
+
+```bash
+# 1. Clean everything (Safe mode)
 make fix
 
-# Run full CI pipeline (format + lint + test)
+# 2. Clean everything (Aggressive mode - check changes after!)
+make fix-force
+
+# 3. Verify quality and security (Read-only check)
+make lint
+
+# 4. Run full CI pipeline (Fix + Lint + Test)
 make ci
-```
-
-### 3. Testing
-
-```bash
-# Run all tests with coverage
-make test
-
-# Run unit tests only
-make test-unit
-```
-
-### 4. Jupyter Notebooks
-
-```bash
-# After installation, select the kernel "Python (uv)" in Jupyter
-# Notebooks are stored in notebooks/
-# Outputs are automatically cleaned with nbstripout
 ```
 
 ## 📁 Project Structure
@@ -82,8 +147,10 @@ make test-unit
 ├── tests/                  # Test files
 ├── notebooks/              # Jupyter notebooks
 ├── Makefile               # Development commands
-├── pyproject.toml         # Project configuration (Ruff, pytest, coverage)
-├── requirements.in        # Direct dependencies
+├── pyproject.toml         # Project configuration & dependencies
+├── uv.lock                # Exact versions lockfile (DO NOT EDIT MANUALLY)
+├── .pre-commit-config.yaml # Git hooks configuration
+├── .editorconfig          # Editor formatting rules
 └── README.md              # This file
 ```
 
@@ -91,42 +158,23 @@ make test-unit
 
 | Command | Description |
 |---------|-------------|
-| `make install` | Setup virtual environment and install dependencies |
+| `make install` | Setup environment, install python version and sync dependencies |
+| `make add PKG=x` | Add a new dependency to the project |
+| `make remove PKG=x` | Remove a dependency from the project |
+| `make setup-hooks` | Install pre-commit hooks for git |
 | `make format` | Format code with Ruff |
 | `make lint` | Run code quality checks |
-| `make lint-fast` | Quick Ruff-only analysis |
 | `make fix` | Auto-fix linting issues |
 | `make test` | Run tests with coverage |
 | `make ci` | Run full CI pipeline |
+| `make generate-requirements` | Export `uv.lock` to `requirements.txt` |
 | `make clean` | Remove cache and generated files |
 | `make help` | Show all available commands |
-
-## 🎯 Code Quality Tools
-
-This project uses **Ruff** - a blazing fast Python linter and formatter written in Rust:
-
-- **Formatting**: Compatible with Black (88 character line length)
-- **Import sorting**: Replaces isort
-- **Linting**: Includes rules from Flake8, pyupgrade, bugbear, and more
-- **Speed**: 10-100x faster than traditional tools
-
-Configuration is centralized in `pyproject.toml`.
-
-## 📦 Managing Dependencies
-
-```bash
-# Add a new dependency
-echo "package-name" >> requirements.in
-make install
-
-# Generate requirements.txt
-make generate-requirements
-```
 
 ## 🐳 Docker Support
 
 ```bash
-# Build Docker image (if Dockerfile exists)
+# Build Docker image
 make build-api
 
 # Run in Docker
@@ -136,20 +184,12 @@ make run-api-docker
 make stop-docker
 ```
 
-## 🧪 Development Workflow
-
-1. **Add your code** in `src/`
-2. **Write tests** in `tests/`
-3. **Format code**: `make format`
-4. **Check quality**: `make lint`
-5. **Run tests**: `make test`
-6. **Commit** your changes
-
 ## 📝 Configuration
 
-- **Ruff**: `pyproject.toml` - [tool.ruff]
-- **Pytest**: `pyproject.toml` - [tool.pytest.ini_options]
-- **Coverage**: `pyproject.toml` - [tool.coverage]
+- **Dependencies**: `pyproject.toml` - `[project.dependencies]`
+- **Ruff**: `pyproject.toml` - `[tool.ruff]`
+- **Pytest**: `pyproject.toml` - `[tool.pytest.ini_options]`
+- **Editor**: `.editorconfig`
 
 ## 🤝 Contributing
 
@@ -157,12 +197,6 @@ make stop-docker
 2. Make your changes
 3. Run `make ci` to ensure quality
 4. Submit a pull request
-
-## 📚 Additional Resources
-
-- [Ruff Documentation](https://docs.astral.sh/ruff/)
-- [uv Documentation](https://github.com/astral-sh/uv)
-- [Python Best Practices](https://docs.python-guide.org/)
 
 ## 📄 License
 

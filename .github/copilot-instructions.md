@@ -7,9 +7,9 @@
 - **Type hints**: Usa anotaciones de tipo cuando sea apropiado.
 
 ## 🔧 Gestión de Entorno
-- **Virtualenv**: Usa **uv** para gestión de dependencias (`uv venv`, `uv pip install`).
+- **Virtualenv**: Usa **uv** para gestión de dependencias (`uv sync`, `uv run`).
 - **Activación**: Usa `source .venv/bin/activate` para activar el entorno.
-- **Dependencias**: Mantén `requirements.in` para dependencias principales.
+- **Dependencias**: Gestiona mediante `pyproject.toml` (`make add PKG=...` o `uv add`).
 
 ## 🛠️ Herramientas de Proyecto
 - **Makefile**: Usa `make <target>` para comandos del proyecto (install, run-api, run-batch-test, etc.).
