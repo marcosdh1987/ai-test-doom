@@ -30,18 +30,28 @@ KERNEL_NAME=ai-kernel
 
 # Set up virtual environment and install all dependencies using uv.lock
 install:
-	@echo "🚀 Configuring project with uv..."
-	@if ! command -v uv &> /dev/null; then \
+	@set -e; \
+	echo "🚀 Configuring project with uv..."; \
+	UV_BIN="$$(command -v uv || true)"; \
+	if [ -z "$$UV_BIN" ]; then \
 		echo "❌ uv is not installed. Installing..."; \
-		pip install uv; \
-	fi
-	@echo "📌 Pinning Python version $(PYTHON_VERSION)..."
-	@uv python pin $(PYTHON_VERSION)
-	@echo "📦 Syncing dependencies (creating .venv if it doesn't exist)..."
-	@uv sync
-	@echo "🔌 Registering Jupyter kernel..."
-	@uv run python -m ipykernel install --user --name=$(KERNEL_NAME) --display-name="Python (uv)"
-	@echo "✅ Environment ready! Use 'source .venv/bin/activate' to activate."
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		for candidate in "$$HOME/.local/bin/uv" "$$HOME/.cargo/bin/uv"; do \
+			if [ -x "$$candidate" ]; then UV_BIN="$$candidate"; break; fi; \
+		done; \
+	fi; \
+	if [ -z "$$UV_BIN" ]; then \
+		echo "❌ Could not find uv after installation. Add it to PATH and retry."; \
+		exit 1; \
+	fi; \
+	echo "✅ Using uv at $$UV_BIN"; \
+	echo "📌 Pinning Python version $(PYTHON_VERSION)..."; \
+	"$$UV_BIN" python pin $(PYTHON_VERSION); \
+	echo "📦 Syncing dependencies (creating .venv if it doesn't exist)..."; \
+	"$$UV_BIN" sync; \
+	echo "🔌 Registering Jupyter kernel..."; \
+	"$$UV_BIN" run python -m ipykernel install --user --name=$(KERNEL_NAME) --display-name="Python (uv)"; \
+	echo "✅ Environment ready! Use 'source .venv/bin/activate' to activate."
 
 # Add a new library to the project (replaces editing requirements.in)
 # Usage: make add PKG=tensorflow
