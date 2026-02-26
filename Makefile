@@ -138,6 +138,10 @@ fix-force:
 test:
 	@echo "🧪 Running tests with coverage..."
 	@if [ ! -d .venv ]; then make install; fi
+	@echo "🎨 Running format before tests..."
+	@make format
+	@echo "🔧 Running fix before tests..."
+	@make fix
 	@. $(VENV_DIR)/bin/activate && PYTHONPATH=${PWD}/src pytest tests/ --cov=src --cov-report=html --cov-report=term-missing || echo "⚠️  No tests found to run"
 	@echo "✅ Tests completed! See report in htmlcov/index.html"
 

@@ -154,6 +154,44 @@ make ci
 └── README.md              # This file
 ```
 
+## 🧭 AI Rules Structure (Cross-Tool)
+
+This template uses a consistent three-level strategy so it can be reused with VS Code/Copilot, Antigravity rules, and Codex-style skills.
+
+### Level 1 — Governance
+
+- `.github/architecture.md`
+- `.github/standards.md`
+- `.github/domain-boundaries.md`
+
+### Level 2 — Operational Skills
+
+Stored in `.github/skills/`:
+
+- `create_use_case`
+- `create_repository_interface`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+
+### Level 3 — Automation
+
+- `.github/automation.md`
+- CI and local checks through `make lint`, `make test`, and `make ci`
+- On PRs, if `src/` or `tests/` changes, at least one file in `docs/` must be updated
+- Test flow enforces `make format` and `make fix` before running tests
+
+Adapters:
+
+- Copilot entrypoint: `.github/copilot-instructions.md`
+- Antigravity-style rules: `.agent/rules/`
+
+Documentation template:
+
+- `docs/implementation-template.md` (use it when implementing and testing new changes)
+
 ## 🔧 Available Commands
 
 | Command | Description |
