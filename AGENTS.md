@@ -12,6 +12,7 @@ Use this repository-level structure as the canonical source of instructions.
 
 - `.github/skills/create_use_case.md`
 - `.github/skills/create_repository_interface.md`
+- `.github/skills/create_mle_agent_package.md`
 - `.github/skills/generate_e2e_tests.md`
 - `.github/skills/generate_implementation_docs.md`
 - `.github/skills/refactor_to_clean_architecture.md`

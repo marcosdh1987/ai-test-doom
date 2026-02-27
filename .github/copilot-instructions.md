@@ -16,6 +16,7 @@ Skill specs are stored in `.github/skills/`:
 
 - `create_use_case`
 - `create_repository_interface`
+- `create_mle_agent_package`
 - `generate_e2e_tests`
 - `generate_implementation_docs`
 - `refactor_to_clean_architecture`
