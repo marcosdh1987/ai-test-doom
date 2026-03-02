@@ -229,6 +229,97 @@ ci:
 	@make test
 	@echo "✅ CI pipeline completed successfully!"
 
+# Sync external skills installed ad-hoc into repository-governed folder
+sync-skills:
+	@set -e; \
+	PRIMARY_SRC=".agents/skills"; \
+	FALLBACK_SRC=".agent/skills"; \
+	DEST=".github/skills-external"; \
+	LOCK_FILE="skills-lock.json"; \
+	TIMESTAMP="$$(date -u +"%Y-%m-%dT%H:%M:%SZ")"; \
+	FOUND_SOURCE=0; \
+	if [ -d "$$PRIMARY_SRC" ]; then \
+		SRC="$$PRIMARY_SRC"; \
+		FOUND_SOURCE=1; \
+	elif [ -d "$$FALLBACK_SRC" ]; then \
+		SRC="$$FALLBACK_SRC"; \
+		FOUND_SOURCE=1; \
+	fi; \
+	synced=0; skipped=0; pruned=0; \
+	if [ $$FOUND_SOURCE -eq 1 ]; then \
+		echo "🔄 Syncing skills from $$SRC to $$DEST..."; \
+		mkdir -p "$$DEST"; \
+		for skill_dir in "$$SRC"/*; do \
+			[ -d "$$skill_dir" ] || continue; \
+			skill_name="$$(basename "$$skill_dir")"; \
+			skill_file="$$skill_dir/SKILL.md"; \
+			if [ ! -f "$$skill_file" ]; then \
+				echo "⚠️  Skipping $$skill_name (missing SKILL.md)"; \
+				skipped=$$((skipped + 1)); \
+				continue; \
+			fi; \
+			mkdir -p "$$DEST/$$skill_name"; \
+			cp "$$skill_file" "$$DEST/$$skill_name/SKILL.md"; \
+			echo "✅ Synced $$skill_name"; \
+			synced=$$((synced + 1)); \
+		done; \
+		for synced_dir in "$$DEST"/*; do \
+			[ -d "$$synced_dir" ] || continue; \
+			skill_name="$$(basename "$$synced_dir")"; \
+			if [ ! -d "$$SRC/$$skill_name" ]; then \
+				rm -rf "$$synced_dir"; \
+				echo "🧹 Pruned $$skill_name (no longer present in $$SRC)"; \
+				pruned=$$((pruned + 1)); \
+			fi; \
+		done; \
+		if [ $$synced -eq 0 ] && [ $$skipped -eq 0 ]; then \
+			echo "ℹ️  No skill directories found in $$SRC."; \
+		fi; \
+		echo "📦 Sync summary: synced=$$synced skipped=$$skipped pruned=$$pruned"; \
+		echo "✅ External skills are available in $$DEST"; \
+	else \
+		echo "ℹ️  No external skills source found (.agents/skills or .agent/skills)."; \
+		echo "✅ Nothing to sync."; \
+	fi; \
+	mkdir -p "$$DEST"; \
+	echo "🧾 Generating governed skills lock file ($$LOCK_FILE)..."; \
+	tmp_lock="$$(mktemp)"; \
+	printf '{\n  "version": 1,\n  "generatedAt": "%s",\n  "skills": {\n' "$$TIMESTAMP" > "$$tmp_lock"; \
+	first=1; \
+	for skill_dir in "$$DEST"/*; do \
+		[ -d "$$skill_dir" ] || continue; \
+		skill_name="$$(basename "$$skill_dir")"; \
+		skill_file="$$skill_dir/SKILL.md"; \
+		[ -f "$$skill_file" ] || continue; \
+		hash="$$(shasum -a 256 "$$skill_file" | awk '{print $$1}')"; \
+		if [ $$first -eq 0 ]; then \
+			printf ',\n' >> "$$tmp_lock"; \
+		fi; \
+		first=0; \
+		printf '    "%s": {\n' "$$skill_name" >> "$$tmp_lock"; \
+		printf '      "source": "synced-local",\n' >> "$$tmp_lock"; \
+		printf '      "sourceType": "file",\n' >> "$$tmp_lock"; \
+		printf '      "path": "%s",\n' "$$skill_file" >> "$$tmp_lock"; \
+		printf '      "computedHash": "%s",\n' "$$hash" >> "$$tmp_lock"; \
+		printf '      "syncedAt": "%s"\n' "$$TIMESTAMP" >> "$$tmp_lock"; \
+		printf '    }' >> "$$tmp_lock"; \
+	done; \
+	printf '\n  }\n}\n' >> "$$tmp_lock"; \
+	mv "$$tmp_lock" "$$LOCK_FILE"; \
+	echo "✅ Lock file updated at $$LOCK_FILE"; \
+	echo "🧹 Cleaning installer artifacts..."; \
+	rm -rf .agents .agent/skills; \
+	echo "✅ Installer artifacts removed (.agents, .agent/skills)"
+
+# Remove all external skills and related metadata to reset template state
+purge-external-skills:
+	@set -e; \
+	echo "🧨 Purging external skills from repository..."; \
+	rm -rf .github/skills-external .agents .agent/skills; \
+	rm -f skills-lock.json; \
+	mkdir -p .github/skills-external; \
+	echo "✅ External skills purged (.github/skills-external reset, skills-lock.json removed)"
+
 # Show help information about available commands
 help:
 	@echo "🏥 Medical Consultation Preparation Agent - Available Commands:"
@@ -270,6 +361,8 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make help                Show this help message"
+	@echo "  make sync-skills         Sync external skills to .github/skills-external"
+	@echo "  make purge-external-skills Purge all external skills and reset metadata"
 	@echo "  make clean               Clean cache and generated files"
 	@echo ""
 
@@ -286,4 +379,4 @@ clean:
 .DEFAULT_GOAL := help
 
 # Declare phony targets
-.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci
+.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci sync-skills purge-external-skills

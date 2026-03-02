@@ -2,6 +2,15 @@
 
 Operational skills must receive explicit input and return structured output.
 
+## Skill Sources
+
+- Internal curated skills: `.github/skills/`
+- External synced skills: `.github/skills-external/`
+
+Precedence rule:
+
+- If a skill exists in both places, prefer `.github/skills/`.
+
 ## Available Skills
 
 - `create_use_case`

@@ -205,9 +205,52 @@ Documentation template:
 | `make fix` | Auto-fix linting issues |
 | `make test` | Run tests with coverage |
 | `make ci` | Run full CI pipeline |
+| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and clean installer artifacts |
+| `make purge-external-skills` | Remove all external skills and reset to template baseline |
 | `make generate-requirements` | Export `uv.lock` to `requirements.txt` |
 | `make clean` | Remove cache and generated files |
 | `make help` | Show all available commands |
+
+## 🧩 Skills Lifecycle (Template)
+
+### Default skills bundled in this template
+
+Internal curated skills live in `.github/skills/`:
+
+- `create_use_case`
+- `create_repository_interface`
+- `create_mle_agent_package`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+
+### Install an external skill from skills.sh
+
+Use the skills installer CLI (example):
+
+```bash
+npx skills add https://github.com/mindrally/skills --skill odoo-development
+```
+
+Then normalize it into this repository structure:
+
+```bash
+make sync-skills
+```
+
+This syncs to `.github/skills-external/`, refreshes `skills-lock.json`, and removes installer temp folders.
+
+### Purge all external skills (reset mode)
+
+To test the full lifecycle from scratch:
+
+```bash
+make purge-external-skills
+```
+
+This removes all synced external skills and `skills-lock.json`, while keeping internal template skills untouched.
 
 ## 🐳 Docker Support
 

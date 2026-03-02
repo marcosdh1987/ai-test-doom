@@ -19,6 +19,12 @@ Use this repository-level structure as the canonical source of instructions.
 - `.github/skills/validate_module_structure.md`
 - `.github/skills/generate_migration_plan.md`
 
+Also load external synced skills from:
+
+- `.github/skills-external/`
+
+If overlap exists, prioritize `.github/skills/` over `.github/skills-external/`.
+
 ## Level 3 — Automation
 
 - `.github/automation.md`

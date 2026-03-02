@@ -12,7 +12,14 @@ Always read and apply these files before generating code or plans.
 
 ## Level 2 — Operational Skills
 
-Skill specs are stored in `.github/skills/`:
+Skill specs are stored in:
+
+- `.github/skills/` (internal curated)
+- `.github/skills-external/` (synced external/vendor)
+
+Prefer internal curated skills when both define overlapping capabilities.
+
+Core internal skills:
 
 - `create_use_case`
 - `create_repository_interface`
