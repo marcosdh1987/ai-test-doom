@@ -1,6 +1,6 @@
 # Copilot Instructions (Template Governance Adapter)
 
-Use the following 3-level structure as the single source of truth:
+Use the following 4-level structure as the single source of truth:
 
 ## Level 1 — Governance
 
@@ -29,6 +29,8 @@ Core internal skills:
 - `refactor_to_clean_architecture`
 - `validate_module_structure`
 - `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 Each skill must:
 
@@ -48,6 +50,20 @@ Prefer system-enforced quality over model-only behavior:
 Automation policy reference:
 
 - `.github/automation.md`
+
+## Level 4 — Orchestration
+
+Use explicit orchestration for complex tasks:
+
+- plan-first requirement
+- step-by-step execution
+- mandatory diff review
+- validation against automation
+- no direct large generation without relevant skill invocation
+
+Orchestration policy reference:
+
+- `.github/orchestration.md`
 
 ## Additional Rules
 

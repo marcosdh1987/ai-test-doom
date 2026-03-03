@@ -21,6 +21,8 @@ Precedence rule:
 - `refactor_to_clean_architecture`
 - `validate_module_structure`
 - `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 ## Governance Dependency
 
@@ -29,3 +31,7 @@ All skills must comply with:
 - `.github/architecture.md`
 - `.github/standards.md`
 - `.github/domain-boundaries.md`
+
+For complex tasks, also comply with:
+
+- `.github/orchestration.md`

@@ -15,6 +15,8 @@ Default internal skills bundled by template:
 - `refactor_to_clean_architecture`
 - `validate_module_structure`
 - `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 ## Sync external skills to governed layout
 

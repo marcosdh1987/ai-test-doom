@@ -18,6 +18,8 @@ Use this repository-level structure as the canonical source of instructions.
 - `.github/skills/refactor_to_clean_architecture.md`
 - `.github/skills/validate_module_structure.md`
 - `.github/skills/generate_migration_plan.md`
+- `.github/skills/execute_engineering_task.md`
+- `.github/skills/plan_and_execute_feature.md`
 
 Also load external synced skills from:
 
@@ -28,6 +30,10 @@ If overlap exists, prioritize `.github/skills/` over `.github/skills-external/`.
 ## Level 3 — Automation
 
 - `.github/automation.md`
+
+## Level 4 — Orchestration
+
+- `.github/orchestration.md`
 
 ## Runtime Rules
 
