@@ -156,7 +156,7 @@ make ci
 
 ## 🧭 AI Rules Structure (Cross-Tool)
 
-This template uses a consistent three-level strategy so it can be reused with VS Code/Copilot, Antigravity rules, and Codex-style skills.
+This template uses a consistent four-level strategy so it can be reused with VS Code/Copilot, Antigravity rules, and Codex-style skills.
 
 ### Level 1 — Governance
 
@@ -170,11 +170,14 @@ Stored in `.github/skills/`:
 
 - `create_use_case`
 - `create_repository_interface`
+- `create_mle_agent_package`
 - `generate_e2e_tests`
 - `generate_implementation_docs`
 - `refactor_to_clean_architecture`
 - `validate_module_structure`
 - `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 ### Level 3 — Automation
 
@@ -182,6 +185,15 @@ Stored in `.github/skills/`:
 - CI and local checks through `make lint`, `make test`, and `make ci`
 - On PRs, if `src/` or `tests/` changes, at least one file in `docs/` must be updated
 - Test flow enforces `make format` and `make fix` before running tests
+
+### Level 4 — Orchestration
+
+- `.github/orchestration.md`
+- Plan-first requirement
+- Step-by-step execution
+- Mandatory diff review
+- Validation against automation
+- No direct large generation without skill invocation
 
 Adapters:
 
@@ -225,6 +237,8 @@ Internal curated skills live in `.github/skills/`:
 - `refactor_to_clean_architecture`
 - `validate_module_structure`
 - `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 ### Install an external skill from skills.sh
 
