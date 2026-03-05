@@ -309,7 +309,20 @@ sync-skills:
 	echo "✅ Lock file updated at $$LOCK_FILE"; \
 	echo "🧹 Cleaning installer artifacts..."; \
 	rm -rf .agents .agent/skills; \
-	echo "✅ Installer artifacts removed (.agents, .agent/skills)"
+	echo "✅ Installer artifacts removed (.agents, .agent/skills)"; \
+	echo "🤖 Syncing internal skills to Claude Code (~/.claude/skills/)..."; \
+	CLAUDE_SKILLS_DIR="$$HOME/.claude/skills"; \
+	mkdir -p "$$CLAUDE_SKILLS_DIR"; \
+	claude_synced=0; \
+	for skill_file in .github/skills/*.md; do \
+		[ -f "$$skill_file" ] || continue; \
+		skill_basename="$$(basename "$$skill_file")"; \
+		[ "$$skill_basename" = "README.md" ] && continue; \
+		cp "$$skill_file" "$$CLAUDE_SKILLS_DIR/$$skill_basename"; \
+		echo "  ✅ Claude: $$skill_basename"; \
+		claude_synced=$$((claude_synced + 1)); \
+	done; \
+	echo "📦 Claude Code skills synced: $$claude_synced → $$CLAUDE_SKILLS_DIR"
 
 # Remove all external skills and related metadata to reset template state
 purge-external-skills:
@@ -361,7 +374,7 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make help                Show this help message"
-	@echo "  make sync-skills         Sync external skills to .github/skills-external"
+	@echo "  make sync-skills         Sync external skills to .github/skills-external and internal skills to ~/.claude/skills"
 	@echo "  make purge-external-skills Purge all external skills and reset metadata"
 	@echo "  make clean               Clean cache and generated files"
 	@echo ""
