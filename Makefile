@@ -23,6 +23,9 @@ export PYTHON_VERSION=3.11.9
 export ENVIRONMENT=localhost
 VENV_DIR ?= .venv
 KERNEL_NAME=ai-kernel
+TEMPLATE_REMOTE ?= template
+TEMPLATE_REPO ?= git@github.com:marcosdh1987/ml-python-base.git
+TEMPLATE_BRANCH ?= main
 
 # =============================================================================
 # DEVELOPMENT ENVIRONMENT CONFIGURATION
@@ -231,6 +234,86 @@ ci:
 	@make test
 	@echo "✅ CI pipeline completed successfully!"
 
+# =============================================================================
+# TEMPLATE SYNC WORKFLOW
+# =============================================================================
+
+# Add (or update) template remote used for repository synchronization.
+# Usage:
+#   make template-remote-setup
+#   make template-remote-setup TEMPLATE_REPO=git@github.com:org/your-template.git
+template-remote-setup:
+	@set -e; \
+	echo "🔗 Configuring template remote '$${TEMPLATE_REMOTE:-$(TEMPLATE_REMOTE)}'..."; \
+	if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+		echo "❌ This directory is not a git repository."; \
+		exit 1; \
+	fi; \
+	if git remote get-url $(TEMPLATE_REMOTE) >/dev/null 2>&1; then \
+		echo "ℹ️  Remote '$(TEMPLATE_REMOTE)' already exists. Updating URL..."; \
+		git remote set-url $(TEMPLATE_REMOTE) $(TEMPLATE_REPO); \
+	else \
+		echo "➕ Adding remote '$(TEMPLATE_REMOTE)'..."; \
+		git remote add $(TEMPLATE_REMOTE) $(TEMPLATE_REPO); \
+	fi; \
+	echo "✅ Template remote configured:"; \
+	git remote -v | grep '^$(TEMPLATE_REMOTE)\s' || true
+
+# Fetch template updates and show commit delta before merging/rebasing.
+# Usage:
+#   make template-sync-preview
+template-sync-preview:
+	@set -e; \
+	echo "📥 Fetching updates from $(TEMPLATE_REMOTE)..."; \
+	git fetch $(TEMPLATE_REMOTE); \
+	echo "📊 Incoming commits from $(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH):"; \
+	if git rev-list --count HEAD..$(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH) >/dev/null 2>&1; then \
+		count="$$(git rev-list --count HEAD..$(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH))"; \
+		echo "   $$count commit(s) ahead in template branch."; \
+		git --no-pager log --oneline --decorate --graph HEAD..$(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH) | head -n 30 || true; \
+	else \
+		echo "⚠️  Could not compare branches. Verify remote/branch names."; \
+	fi
+
+# Merge template changes into current branch.
+# Usage:
+#   make template-sync-merge
+#   make template-sync-merge TEMPLATE_BRANCH=develop
+template-sync-merge:
+	@set -e; \
+	echo "🧭 Checking working tree status..."; \
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "❌ Working tree is not clean. Commit or stash before syncing."; \
+		exit 1; \
+	fi; \
+	git fetch $(TEMPLATE_REMOTE); \
+	echo "🔀 Merging $(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH) into $$(git branch --show-current)..."; \
+	git merge --no-ff $(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH) || { \
+		echo "⚠️  Merge conflicts detected. Resolve them and continue with 'git commit'."; \
+		echo "   Tip: git status && git diff --name-only --diff-filter=U"; \
+		exit 1; \
+	}; \
+	echo "✅ Template merge completed."
+
+# Rebase current branch on top of template changes.
+# Usage:
+#   make template-sync-rebase
+template-sync-rebase:
+	@set -e; \
+	echo "🧭 Checking working tree status..."; \
+	if [ -n "$$(git status --porcelain)" ]; then \
+		echo "❌ Working tree is not clean. Commit or stash before syncing."; \
+		exit 1; \
+	fi; \
+	git fetch $(TEMPLATE_REMOTE); \
+	echo "🧬 Rebasing $$(git branch --show-current) onto $(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH)..."; \
+	git rebase $(TEMPLATE_REMOTE)/$(TEMPLATE_BRANCH) || { \
+		echo "⚠️  Rebase conflicts detected. Resolve and continue with 'git rebase --continue'."; \
+		echo "   If needed: git rebase --abort"; \
+		exit 1; \
+	}; \
+	echo "✅ Template rebase completed."
+
 # Sync external skills installed ad-hoc into repository-governed folder
 sync-skills:
 	@set -e; \
@@ -370,6 +453,10 @@ help:
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make help                Show this help message"
+	@echo "  make template-remote-setup Add/update template upstream remote"
+	@echo "  make template-sync-preview Fetch template and preview incoming commits"
+	@echo "  make template-sync-merge Merge template branch into current branch"
+	@echo "  make template-sync-rebase Rebase current branch onto template branch"
 	@echo "  make sync-skills         Sync external skills to .github/skills-external (additive, no prune)"
 	@echo "  make purge-external-skills Purge all external skills and reset metadata"
 	@echo "  make clean               Clean cache and generated files"
@@ -388,4 +475,4 @@ clean:
 .DEFAULT_GOAL := help
 
 # Declare phony targets
-.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci sync-skills purge-external-skills
+.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci template-remote-setup template-sync-preview template-sync-merge template-sync-rebase sync-skills purge-external-skills

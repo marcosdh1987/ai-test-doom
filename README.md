@@ -219,9 +219,27 @@ Documentation template:
 | `make ci` | Run full CI pipeline |
 | `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and clean installer artifacts |
 | `make purge-external-skills` | Remove all external skills and reset to template baseline |
+| `make template-remote-setup` | Add or update the template upstream remote |
+| `make template-sync-preview` | Fetch template changes and preview incoming commits |
+| `make template-sync-merge` | Merge template branch into current branch |
+| `make template-sync-rebase` | Rebase current branch onto template branch |
 | `make generate-requirements` | Export `uv.lock` to `requirements.txt` |
 | `make clean` | Remove cache and generated files |
 | `make help` | Show all available commands |
+
+## Template Sync
+
+If this repository is used as a long-lived template, derived repositories can keep receiving updates by using a Git remote as upstream.
+
+Quick setup:
+
+```bash
+make template-remote-setup
+make template-sync-preview
+make template-sync-merge
+```
+
+For a full guide (including conflict resolution and rebase flow), see `docs/template-sync.md`.
 
 ## 🧩 Skills Lifecycle (Template)
 
