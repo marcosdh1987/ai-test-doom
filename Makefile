@@ -245,7 +245,7 @@ sync-skills:
 		SRC="$$FALLBACK_SRC"; \
 		FOUND_SOURCE=1; \
 	fi; \
-	synced=0; skipped=0; pruned=0; \
+	synced=0; skipped=0; \
 	if [ $$FOUND_SOURCE -eq 1 ]; then \
 		echo "🔄 Syncing skills from $$SRC to $$DEST..."; \
 		mkdir -p "$$DEST"; \
@@ -263,19 +263,10 @@ sync-skills:
 			echo "✅ Synced $$skill_name"; \
 			synced=$$((synced + 1)); \
 		done; \
-		for synced_dir in "$$DEST"/*; do \
-			[ -d "$$synced_dir" ] || continue; \
-			skill_name="$$(basename "$$synced_dir")"; \
-			if [ ! -d "$$SRC/$$skill_name" ]; then \
-				rm -rf "$$synced_dir"; \
-				echo "🧹 Pruned $$skill_name (no longer present in $$SRC)"; \
-				pruned=$$((pruned + 1)); \
-			fi; \
-		done; \
 		if [ $$synced -eq 0 ] && [ $$skipped -eq 0 ]; then \
 			echo "ℹ️  No skill directories found in $$SRC."; \
 		fi; \
-		echo "📦 Sync summary: synced=$$synced skipped=$$skipped pruned=$$pruned"; \
+		echo "📦 Sync summary: synced=$$synced skipped=$$skipped"; \
 		echo "✅ External skills are available in $$DEST"; \
 	else \
 		echo "ℹ️  No external skills source found (.agents/skills or .agent/skills)."; \
