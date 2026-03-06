@@ -19,20 +19,18 @@ Skills are stored in:
 
 Prefer internal curated skills when both define overlapping capabilities.
 
-Core internal skills (available as `/skill-name` after running `make sync-skills`):
+Core internal skills (specs in `.github/skills/`):
 
-| Skill | Invocation |
-|---|---|
-| `create_use_case` | `/create_use_case` |
-| `create_repository_interface` | `/create_repository_interface` |
-| `create_mle_agent_package` | `/create_mle_agent_package` |
-| `generate_e2e_tests` | `/generate_e2e_tests` |
-| `generate_implementation_docs` | `/generate_implementation_docs` |
-| `refactor_to_clean_architecture` | `/refactor_to_clean_architecture` |
-| `validate_module_structure` | `/validate_module_structure` |
-| `generate_migration_plan` | `/generate_migration_plan` |
-| `execute_engineering_task` | `/execute_engineering_task` |
-| `plan_and_execute_feature` | `/plan_and_execute_feature` |
+- `create_use_case`
+- `create_repository_interface`
+- `create_mle_agent_package`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
 
 Each skill must:
 
