@@ -77,7 +77,9 @@ generate-requirements:
 setup-hooks:
 	@echo "🪝 Installing pre-commit hooks..."
 	@if [ ! -d .venv ]; then make install; fi
-	@uv run pre-commit install
+	@echo "📦 Syncing dev dependencies required for hooks..."
+	@uv sync --group dev
+	@. $(VENV_DIR)/bin/activate && pre-commit install
 	@echo "✅ Hooks installed!"
 
 # =============================================================================

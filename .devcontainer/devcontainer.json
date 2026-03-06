@@ -29,7 +29,7 @@
   },
   // Usamos tu Makefile para instalar todo automáticamente al crear el contenedor
   "postCreateCommand": "make install",
-  
+
   // Usuario remoto (vscode es el default en las imágenes de Microsoft)
   "remoteUser": "vscode"
 }
