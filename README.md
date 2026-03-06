@@ -154,6 +154,56 @@ make ci
 └── README.md              # This file
 ```
 
+## 🧭 AI Rules Structure (Cross-Tool)
+
+This template uses a consistent four-level strategy so it can be reused with VS Code/Copilot, Antigravity rules, and Codex-style skills.
+
+### Level 1 — Governance
+
+- `.github/architecture.md`
+- `.github/standards.md`
+- `.github/domain-boundaries.md`
+
+### Level 2 — Operational Skills
+
+Stored in `.github/skills/`:
+
+- `create_use_case`
+- `create_repository_interface`
+- `create_mle_agent_package`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
+
+### Level 3 — Automation
+
+- `.github/automation.md`
+- CI and local checks through `make lint`, `make test`, and `make ci`
+- On PRs, if `src/` or `tests/` changes, at least one file in `docs/` must be updated
+- Test flow enforces `make format` and `make fix` before running tests
+
+### Level 4 — Orchestration
+
+- `.github/orchestration.md`
+- Plan-first requirement
+- Step-by-step execution
+- Mandatory diff review
+- Validation against automation
+- No direct large generation without skill invocation
+
+Adapters:
+
+- Copilot entrypoint: `.github/copilot-instructions.md`
+- Antigravity-style rules: `.agent/rules/`
+
+Documentation template:
+
+- `docs/implementation-template.md` (use it when implementing and testing new changes)
+
 ## 🔧 Available Commands
 
 | Command | Description |
@@ -167,9 +217,72 @@ make ci
 | `make fix` | Auto-fix linting issues |
 | `make test` | Run tests with coverage |
 | `make ci` | Run full CI pipeline |
+| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and clean installer artifacts |
+| `make purge-external-skills` | Remove all external skills and reset to template baseline |
+| `make template-remote-setup` | Add or update the template upstream remote |
+| `make template-sync-preview` | Fetch template changes and preview incoming commits |
+| `make template-sync-merge` | Merge template branch into current branch |
+| `make template-sync-rebase` | Rebase current branch onto template branch |
 | `make generate-requirements` | Export `uv.lock` to `requirements.txt` |
 | `make clean` | Remove cache and generated files |
 | `make help` | Show all available commands |
+
+## Template Sync
+
+If this repository is used as a long-lived template, derived repositories can keep receiving updates by using a Git remote as upstream.
+
+Quick setup:
+
+```bash
+make template-remote-setup
+make template-sync-preview
+make template-sync-merge
+```
+
+For a full guide (including conflict resolution and rebase flow), see `docs/template-sync.md`.
+
+## 🧩 Skills Lifecycle (Template)
+
+### Default skills bundled in this template
+
+Internal curated skills live in `.github/skills/`:
+
+- `create_use_case`
+- `create_repository_interface`
+- `create_mle_agent_package`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
+
+### Install an external skill from skills.sh
+
+Use the skills installer CLI (example):
+
+```bash
+npx skills add https://github.com/mindrally/skills --skill odoo-development
+```
+
+Then normalize it into this repository structure:
+
+```bash
+make sync-skills
+```
+
+This syncs to `.github/skills-external/`, refreshes `skills-lock.json`, and removes installer temp folders.
+
+### Purge all external skills (reset mode)
+
+To test the full lifecycle from scratch:
+
+```bash
+make purge-external-skills
+```
+
+This removes all synced external skills and `skills-lock.json`, while keeping internal template skills untouched.
 
 ## 🐳 Docker Support
 

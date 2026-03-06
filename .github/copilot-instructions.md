@@ -1,43 +1,73 @@
-# Instrucciones de estilo para Copilot Chat
+# Copilot Instructions (Template Governance Adapter)
 
-## 🐍 Desarrollo Python
-- **Lenguaje**: Genera siempre código en **Python**.
-- **Modularidad**: Organiza el código en **paquetes** y **módulos** claros.
-- **Documentación**: Incluye **docstrings** explicativos en funciones y clases.
-- **Type hints**: Usa anotaciones de tipo cuando sea apropiado.
+Use the following 4-level structure as the single source of truth:
 
-## 🔧 Gestión de Entorno
-- **Virtualenv**: Usa **uv** para gestión de dependencias (`uv sync`, `uv run`).
-- **Activación**: Usa `source .venv/bin/activate` para activar el entorno.
-- **Dependencias**: Gestiona mediante `pyproject.toml` (`make add PKG=...` o `uv add`).
+## Level 1 — Governance
 
-## 🛠️ Herramientas de Proyecto
-- **Makefile**: Usa `make <target>` para comandos del proyecto (install, run-api, run-batch-test, etc.).
-- **Tests**: Coloca archivos de prueba en `tests/` con nombres descriptivos.
-- **Docker**: Prefiere Docker Compose para servicios (`make build`, `make run`).
+- `.github/architecture.md`
+- `.github/standards.md`
+- `.github/domain-boundaries.md`
 
-## 🤖 Agentes LLM y Prompts
-- **LangChain**: Usa `ChatPromptTemplate` para prompts estructurados.
-- **Organización**: Prompts en `src/agent_rag/prompts/{component}/{modelo}.py`.
-- **Carga dinámica**: Usa `load_prompt()` con fallbacks por modelo.
-- **Nomenclatura**: Exports como `{COMPONENT}_PROMPT` y `{COMPONENT}_CHAT_PROMPT`.
+Always read and apply these files before generating code or plans.
 
-## ⚙️ Configuración
-- **Variables de entorno**: Define en `.env.example` con categorías claras.
-- **Settings**: Usa `Pydantic BaseModel` para configuración con validación.
-- **Valores por defecto**: Siempre proporciona defaults sensatos.
-- **Tipos de datos**: Maneja automáticamente bool, int, list desde env vars.
+## Level 2 — Operational Skills
 
-## 📚 Referencias y Mejores Prácticas
+Skill specs are stored in:
 
-### 🎯 Prompt Engineering
-- **XML Tags**: Sigue las técnicas de Anthropic para estructurar prompts con XML tags: https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags
-- **Guía completa**: Consulta la guía de prompting para técnicas avanzadas: https://www.promptingguide.ai/es
-- **Estructuración**: Usa delimitadores claros (`<thinking>`, `<context>`, `<instructions>`) en prompts complejos.
-- **Few-shot examples**: Incluye ejemplos cuando sea necesario para claridad.
+- `.github/skills/` (internal curated)
+- `.github/skills-external/` (synced external/vendor)
 
-### 🔧 Patrones de Código
-- **Separation of concerns**: Mantén lógica de negocio separada de configuración.
-- **Error handling**: Siempre incluye manejo de errores con logging apropiado.
-- **Caching**: Usa `@lru_cache` para funciones costosas que se llaman repetidamente.
-- **Type safety**: Prefiere validación con Pydantic sobre validación manual.
+Prefer internal curated skills when both define overlapping capabilities.
+
+Core internal skills:
+
+- `create_use_case`
+- `create_repository_interface`
+- `create_mle_agent_package`
+- `generate_e2e_tests`
+- `generate_implementation_docs`
+- `refactor_to_clean_architecture`
+- `validate_module_structure`
+- `generate_migration_plan`
+- `execute_engineering_task`
+- `plan_and_execute_feature`
+
+Each skill must:
+
+- receive explicit input,
+- produce structured output,
+- comply with governance files.
+
+## Level 3 — Real Automation
+
+Prefer system-enforced quality over model-only behavior:
+
+- strict lint rules
+- CI checks
+- structure enforcement
+- PR bots
+
+Automation policy reference:
+
+- `.github/automation.md`
+
+## Level 4 — Orchestration
+
+Use explicit orchestration for complex tasks:
+
+- plan-first requirement
+- step-by-step execution
+- mandatory diff review
+- validation against automation
+- no direct large generation without relevant skill invocation
+
+Orchestration policy reference:
+
+- `.github/orchestration.md`
+
+## Additional Rules
+
+- Interact with user in the language used by the user.
+- Keep all code artifacts in English.
+- Prefer `Makefile` commands and `uv` workflow.
+- When implementing and testing new changes, create or update documentation in `docs/`.

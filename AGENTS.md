@@ -1,10 +1,6 @@
----
-trigger: always_on
----
+# Codex UI Adapter
 
-## 🤖 Antigravity Rules Adapter
-
-Use this repository-level structure as the canonical source.
+Use this repository-level structure as the canonical source of instructions.
 
 ## Level 1 — Governance
 
@@ -16,13 +12,16 @@ Use this repository-level structure as the canonical source.
 
 - `.github/skills/create_use_case.md`
 - `.github/skills/create_repository_interface.md`
+- `.github/skills/create_mle_agent_package.md`
 - `.github/skills/generate_e2e_tests.md`
 - `.github/skills/generate_implementation_docs.md`
 - `.github/skills/refactor_to_clean_architecture.md`
 - `.github/skills/validate_module_structure.md`
 - `.github/skills/generate_migration_plan.md`
+- `.github/skills/execute_engineering_task.md`
+- `.github/skills/plan_and_execute_feature.md`
 
-External synced/vendor skills:
+Also load external synced skills from:
 
 - `.github/skills-external/`
 
@@ -32,15 +31,12 @@ If overlap exists, prioritize `.github/skills/` over `.github/skills-external/`.
 
 - `.github/automation.md`
 
-## Runtime Behavior
+## Level 4 — Orchestration
 
-- Interact in the same language as the user.
-- Keep code artifacts in English.
-- Check `Makefile` before suggesting commands.
-- Prefer `make install`, `make format`, `make fix`, `make lint`, and `make test`.
-- When implementing and testing new changes, create or update docs in `docs/`.
+- `.github/orchestration.md`
 
-## Imports Policy
+## Runtime Rules
 
-- Import rules are centralized in `.github/standards.md`.
-- Use absolute imports only.
+- Use user language for interaction.
+- Keep all code artifacts in English.
+- Prefer Makefile and uv workflows.
