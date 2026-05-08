@@ -31,7 +31,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           git fetch origin "${BASE_REF}" --depth=1
-          CHANGED_FILES=$(git diff --name-only "origin/${BASE_REF}"...HEAD)
+          CHANGED_FILES=$(git diff --name-only FETCH_HEAD HEAD)
 
           if echo "${CHANGED_FILES}" | grep -E '^(src/|tests/)'; then
             if ! echo "${CHANGED_FILES}" | grep -E '^docs/'; then
