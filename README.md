@@ -156,7 +156,7 @@ make ci
 
 ## 🧭 AI Rules Structure (Cross-Tool)
 
-This template uses a consistent four-level strategy so it can be reused with VS Code/Copilot, Antigravity rules, and Codex-style skills.
+This template uses a consistent four-level strategy so it can be reused with Claude Code, VS Code/Copilot, Antigravity rules, and Codex-style instructions.
 
 ### Level 1 — Governance
 
@@ -166,7 +166,7 @@ This template uses a consistent four-level strategy so it can be reused with VS 
 
 ### Level 2 — Operational Skills
 
-Stored in `.github/skills/`:
+Internal governed skills are stored in `.github/skills/` as the source of truth:
 
 - `create_use_case`
 - `create_repository_interface`
@@ -178,6 +178,14 @@ Stored in `.github/skills/`:
 - `generate_migration_plan`
 - `execute_engineering_task`
 - `plan_and_execute_feature`
+
+Claude Code reads a generated native layout from `.claude/skills/`, including internal and synced external skills. Refresh it with:
+
+```bash
+make setup-claude-skills
+```
+
+External synced/vendor skills live in `.github/skills-external/`.
 
 ### Level 3 — Automation
 
@@ -197,6 +205,8 @@ Stored in `.github/skills/`:
 
 Adapters:
 
+- Claude Code entrypoint: `CLAUDE.md`
+- Claude Code native skills: `.claude/skills/` generated from `.github/skills/` and `.github/skills-external/`
 - Copilot entrypoint: `.github/copilot-instructions.md`
 - Antigravity-style rules: `.agent/rules/`
 
@@ -217,8 +227,9 @@ Documentation template:
 | `make fix` | Auto-fix linting issues |
 | `make test` | Run tests with coverage |
 | `make ci` | Run full CI pipeline |
-| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and clean installer artifacts |
-| `make purge-external-skills` | Remove all external skills and reset to template baseline |
+| `make setup-claude-skills` | Generate `.claude/skills` native symlinks from governed skills |
+| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and refresh Claude skill links |
+| `make purge-external-skills` | Remove all external skills and refresh Claude skill links |
 | `make template-remote-setup` | Add or update the template upstream remote |
 | `make template-sync-preview` | Fetch template changes and preview incoming commits |
 | `make template-sync-merge` | Merge template branch into current branch |
@@ -272,7 +283,7 @@ Then normalize it into this repository structure:
 make sync-skills
 ```
 
-This syncs to `.github/skills-external/`, refreshes `skills-lock.json`, and removes installer temp folders.
+This syncs complete skill directories to `.github/skills-external/`, refreshes `skills-lock.json`, removes installer temp folders, and refreshes `.claude/skills`. Run `make setup-claude-skills` separately when internal governed skills change and Claude Code needs its native links refreshed.
 
 ### Purge all external skills (reset mode)
 

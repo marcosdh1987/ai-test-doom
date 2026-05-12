@@ -2,14 +2,26 @@
 
 Operational skills must receive explicit input and return structured output.
 
+Each internal skill file must include YAML frontmatter with:
+
+- `name`: file name without `.md`
+- `description`: semantic trigger description for native skill discovery
+
 ## Skill Sources
 
 - Internal curated skills: `.github/skills/`
 - External synced skills: `.github/skills-external/`
+- Claude Code native generated links: `.claude/skills/`
 
 Precedence rule:
 
 - If a skill exists in both places, prefer `.github/skills/`.
+
+Refresh Claude Code native links after internal or external skill changes:
+
+```bash
+make setup-claude-skills
+```
 
 ## Available Skills
 

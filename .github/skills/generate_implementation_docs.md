@@ -1,3 +1,8 @@
+---
+name: generate_implementation_docs
+description: Use when creating or updating implementation documentation for completed code or test changes.
+---
+
 # Skill: generate_implementation_docs
 
 ## Purpose

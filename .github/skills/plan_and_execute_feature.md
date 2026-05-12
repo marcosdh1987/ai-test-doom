@@ -1,3 +1,8 @@
+---
+name: plan_and_execute_feature
+description: Use when delivering a feature through explicit planning, phased execution, validation, and governed handoff.
+---
+
 # Skill: plan_and_execute_feature
 
 ## Purpose

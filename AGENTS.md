@@ -10,6 +10,8 @@ Use this repository-level structure as the canonical source of instructions.
 
 ## Level 2 — Operational Skills
 
+Internal governed skills are the source of truth:
+
 - `.github/skills/create_use_case.md`
 - `.github/skills/create_repository_interface.md`
 - `.github/skills/create_mle_agent_package.md`
@@ -21,7 +23,15 @@ Use this repository-level structure as the canonical source of instructions.
 - `.github/skills/execute_engineering_task.md`
 - `.github/skills/plan_and_execute_feature.md`
 
-Also load external synced skills from:
+Claude Code native skill links are generated from `.github/skills/` and `.github/skills-external/` into:
+
+- `.claude/skills/`
+
+Refresh them with:
+
+- `make setup-claude-skills`
+
+Also load external synced/vendor skills from:
 
 - `.github/skills-external/`
 

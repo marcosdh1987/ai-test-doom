@@ -1,3 +1,8 @@
+---
+name: generate_migration_plan
+description: Use when planning low-risk code, data, or architecture migrations with validation and rollback steps.
+---
+
 # Skill: generate_migration_plan
 
 ## Purpose

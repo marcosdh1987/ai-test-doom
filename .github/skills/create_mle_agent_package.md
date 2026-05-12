@@ -1,3 +1,8 @@
+---
+name: create_mle_agent_package
+description: Use when designing a reusable pip-installable MLE agent package with governed scaffolding, runtime adapters, and validation plans.
+---
+
 # Skill: create_mle_agent_package
 
 ## Purpose

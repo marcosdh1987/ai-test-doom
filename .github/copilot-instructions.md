@@ -12,12 +12,14 @@ Always read and apply these files before generating code or plans.
 
 ## Level 2 — Operational Skills
 
-Skill specs are stored in:
+Internal governed skills are the source of truth:
 
 - `.github/skills/` (internal curated)
 - `.github/skills-external/` (synced external/vendor)
 
 Prefer internal curated skills when both define overlapping capabilities.
+
+Claude Code has a generated native view at `.claude/skills/`, refreshed with `make setup-claude-skills` or `make sync-skills`. Copilot should continue to use `.github/skills/` and `.github/skills-external/` as inline instruction references.
 
 Core internal skills:
 
