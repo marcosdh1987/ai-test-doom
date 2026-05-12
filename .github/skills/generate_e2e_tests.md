@@ -1,3 +1,8 @@
+---
+name: generate_e2e_tests
+description: Use when generating end-to-end tests for critical user, API, CLI, or service flows.
+---
+
 # Skill: generate_e2e_tests
 
 ## Purpose

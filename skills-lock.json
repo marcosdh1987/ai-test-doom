@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-12T15:29:55Z",
+  "skills": {
+    "ui-ux-pro-max": {
+      "source": "synced-local",
+      "sourceType": "directory",
+      "path": ".github/skills-external/ui-ux-pro-max",
+      "skillFile": ".github/skills-external/ui-ux-pro-max/SKILL.md",
+      "computedHash": "9bd26c52dfd10dfd613dd3cc85df217dc25a172e380bde41fdfa6fedda288b2a",
+      "syncedAt": "2026-05-12T15:29:55Z"
+    }
+  }
+}

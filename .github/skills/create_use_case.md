@@ -1,3 +1,8 @@
+---
+name: create_use_case
+description: Use when creating an application use case with clean architecture boundaries, typed contracts, and explicit business flow.
+---
+
 # Skill: create_use_case
 
 ## Purpose

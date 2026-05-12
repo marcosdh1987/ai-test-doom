@@ -1,3 +1,8 @@
+---
+name: refactor_to_clean_architecture
+description: Use when refactoring modules to align dependency direction, responsibilities, and boundaries with clean architecture.
+---
+
 # Skill: refactor_to_clean_architecture
 
 ## Purpose

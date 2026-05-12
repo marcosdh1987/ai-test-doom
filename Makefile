@@ -314,6 +314,69 @@ template-sync-rebase:
 	}; \
 	echo "✅ Template rebase completed."
 
+# Generate Claude Code native skill layout from governed internal and external skills
+setup-claude-skills:
+	@set -e; \
+	INTERNAL_SRC=".github/skills"; \
+	EXTERNAL_SRC=".github/skills-external"; \
+	DEST=".claude/skills"; \
+	echo "🧩 Generating Claude Code native skills..."; \
+	mkdir -p "$$DEST"; \
+	find "$$DEST" -mindepth 1 -maxdepth 1 -type l -delete 2>/dev/null || true; \
+	find "$$DEST" -mindepth 2 -maxdepth 2 -type l -delete 2>/dev/null || true; \
+	created=0; \
+	for skill_file in "$$INTERNAL_SRC"/*.md; do \
+		[ -f "$$skill_file" ] || continue; \
+		skill_name="$$(basename "$$skill_file" .md)"; \
+		[ "$$skill_name" != "README" ] || continue; \
+		skill_dest="$$DEST/$$skill_name"; \
+		target="$$skill_dest/SKILL.md"; \
+		mkdir -p "$$skill_dest"; \
+		if [ -e "$$target" ] && [ ! -L "$$target" ]; then \
+			echo "❌ Refusing to overwrite non-symlink $$target"; \
+			exit 1; \
+		fi; \
+		find "$$skill_dest" -mindepth 1 -maxdepth 1 -type l -delete 2>/dev/null || true; \
+		ln -sfn "../../../$$skill_file" "$$target"; \
+		echo "✅ Linked internal $$skill_name"; \
+		created=$$((created + 1)); \
+	done; \
+	external=0; \
+	if [ -d "$$EXTERNAL_SRC" ]; then \
+		for skill_dir in "$$EXTERNAL_SRC"/*; do \
+			[ -d "$$skill_dir" ] || continue; \
+			skill_name="$$(basename "$$skill_dir")"; \
+			if [ -f "$$INTERNAL_SRC/$$skill_name.md" ]; then \
+				echo "ℹ️  Skipping external $$skill_name because an internal skill has precedence"; \
+				continue; \
+			fi; \
+			if [ ! -f "$$skill_dir/SKILL.md" ]; then \
+				echo "⚠️  Skipping external $$skill_name (missing SKILL.md)"; \
+				continue; \
+			fi; \
+			skill_dest="$$DEST/$$skill_name"; \
+			if [ -e "$$skill_dest" ] && [ ! -d "$$skill_dest" ]; then \
+				echo "❌ Refusing to overwrite non-directory $$skill_dest"; \
+				exit 1; \
+			fi; \
+			mkdir -p "$$skill_dest"; \
+			find "$$skill_dest" -mindepth 1 -maxdepth 1 -type l -delete 2>/dev/null || true; \
+			for item in "$$skill_dir"/*; do \
+				[ -e "$$item" ] || continue; \
+				item_name="$$(basename "$$item")"; \
+				target="$$skill_dest/$$item_name"; \
+				if [ -e "$$target" ] && [ ! -L "$$target" ]; then \
+					echo "❌ Refusing to overwrite non-symlink $$target"; \
+					exit 1; \
+				fi; \
+				ln -sfn "../../../$$item" "$$target"; \
+			done; \
+			echo "✅ Linked external $$skill_name"; \
+			external=$$((external + 1)); \
+		done; \
+	fi; \
+	echo "✅ Claude Code skills ready in $$DEST (internal=$$created external=$$external)"
+
 # Sync external skills installed ad-hoc into repository-governed folder
 sync-skills:
 	@set -e; \
@@ -343,8 +406,9 @@ sync-skills:
 				skipped=$$((skipped + 1)); \
 				continue; \
 			fi; \
+			rm -rf "$$DEST/$$skill_name"; \
 			mkdir -p "$$DEST/$$skill_name"; \
-			cp "$$skill_file" "$$DEST/$$skill_name/SKILL.md"; \
+			cp -R "$$skill_dir"/. "$$DEST/$$skill_name"/; \
 			echo "✅ Synced $$skill_name"; \
 			synced=$$((synced + 1)); \
 		done; \
@@ -374,8 +438,9 @@ sync-skills:
 		first=0; \
 		printf '    "%s": {\n' "$$skill_name" >> "$$tmp_lock"; \
 		printf '      "source": "synced-local",\n' >> "$$tmp_lock"; \
-		printf '      "sourceType": "file",\n' >> "$$tmp_lock"; \
-		printf '      "path": "%s",\n' "$$skill_file" >> "$$tmp_lock"; \
+		printf '      "sourceType": "directory",\n' >> "$$tmp_lock"; \
+		printf '      "path": "%s",\n' "$$skill_dir" >> "$$tmp_lock"; \
+		printf '      "skillFile": "%s",\n' "$$skill_file" >> "$$tmp_lock"; \
 		printf '      "computedHash": "%s",\n' "$$hash" >> "$$tmp_lock"; \
 		printf '      "syncedAt": "%s"\n' "$$TIMESTAMP" >> "$$tmp_lock"; \
 		printf '    }' >> "$$tmp_lock"; \
@@ -386,22 +451,8 @@ sync-skills:
 	echo "🧹 Cleaning installer artifacts..."; \
 	rm -rf .agents .agent/skills; \
 	echo "✅ Installer artifacts removed (.agents, .agent/skills)"; \
-	if [ -d ".claude/skills" ]; then \
-		echo "🔄 Syncing persistent skills from .claude/skills to $$DEST..."; \
-		for skill_dir in ".claude/skills"/*; do \
-			[ -d "$$skill_dir" ] || continue; \
-			skill_name="$$(basename "$$skill_dir")"; \
-			skill_file="$$skill_dir/SKILL.md"; \
-			if [ ! -f "$$skill_file" ]; then \
-				echo "⚠️  Skipping $$skill_name (missing SKILL.md)"; \
-				continue; \
-			fi; \
-			mkdir -p "$$DEST/$$skill_name"; \
-			cp "$$skill_file" "$$DEST/$$skill_name/SKILL.md"; \
-			echo "✅ Synced (persistent): $$skill_name"; \
-		done; \
-	fi; \
-	echo "✅ Sync complete. Claude Code reads skills from .github/skills/ via CLAUDE.md"
+	$(MAKE) setup-claude-skills; \
+	echo "✅ Sync complete. External skills are synced and Claude Code native links are refreshed."
 
 # Remove all external skills and related metadata to reset template state
 purge-external-skills:
@@ -410,6 +461,7 @@ purge-external-skills:
 	rm -rf .github/skills-external .agents .agent/skills; \
 	rm -f skills-lock.json; \
 	mkdir -p .github/skills-external; \
+	$(MAKE) setup-claude-skills; \
 	echo "✅ External skills purged (.github/skills-external reset, skills-lock.json removed)"
 
 # Show help information about available commands
@@ -457,6 +509,7 @@ help:
 	@echo "  make template-sync-preview Fetch template and preview incoming commits"
 	@echo "  make template-sync-merge Merge template branch into current branch"
 	@echo "  make template-sync-rebase Rebase current branch onto template branch"
+	@echo "  make setup-claude-skills Generate .claude/skills native symlinks from governed skills"
 	@echo "  make sync-skills         Sync external skills to .github/skills-external (additive, no prune)"
 	@echo "  make purge-external-skills Purge all external skills and reset metadata"
 	@echo "  make clean               Clean cache and generated files"
@@ -475,4 +528,4 @@ clean:
 .DEFAULT_GOAL := help
 
 # Declare phony targets
-.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci template-remote-setup template-sync-preview template-sync-merge template-sync-rebase sync-skills purge-external-skills
+.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci template-remote-setup template-sync-preview template-sync-merge template-sync-rebase setup-claude-skills sync-skills purge-external-skills

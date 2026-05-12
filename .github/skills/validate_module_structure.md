@@ -1,3 +1,8 @@
+---
+name: validate_module_structure
+description: Use when validating module placement, dependency direction, and structure against repository governance.
+---
+
 # Skill: validate_module_structure
 
 ## Purpose

@@ -1,8 +1,8 @@
 # Claude Code Adapter
 
-Use the following 4-level structure as the single source of truth for all AI-assisted work in this repository.
+Use this repository-level structure as the canonical source of instructions.
 
-## Level 1 — Governance
+## Governance
 
 Always read and apply these files before generating code or plans:
 
@@ -10,66 +10,49 @@ Always read and apply these files before generating code or plans:
 - `.github/standards.md`
 - `.github/domain-boundaries.md`
 
-## Level 2 — Operational Skills
+## Native Skills
 
-Skills are stored in:
+Claude Code discovers internal and synced external skills from:
 
-- `.github/skills/` (internal curated)
-- `.github/skills-external/` (synced external/vendor)
+- `.claude/skills/`
 
-Prefer internal curated skills when both define overlapping capabilities.
+Generate or refresh that native layout with:
 
-Core internal skills (specs in `.github/skills/`):
+- `make setup-claude-skills`
 
-- `create_use_case`
-- `create_repository_interface`
-- `create_mle_agent_package`
-- `generate_e2e_tests`
-- `generate_implementation_docs`
-- `refactor_to_clean_architecture`
-- `validate_module_structure`
-- `generate_migration_plan`
-- `execute_engineering_task`
-- `plan_and_execute_feature`
+The governed internal source of truth remains:
 
-Each skill must:
+- `.github/skills/`
 
-- receive explicit input,
-- produce structured output,
-- comply with governance files.
+External synced/vendor skills remain in:
 
-## Level 3 — Automation
+- `.github/skills-external/`
+
+If overlap exists, prefer `.github/skills/` over `.github/skills-external/`.
+
+## Automation
 
 Prefer system-enforced quality over model-only behavior:
 
 - Automation policy: `.github/automation.md`
+- Quality gate sequence: `make format` -> `make fix` -> `make lint` -> `make test`
 
-Quality gate sequence:
+Check `Makefile` before suggesting commands.
 
-- `make format`
-- `make fix`
-- `make lint`
-- `make test`
-
-## Level 4 — Orchestration
+## Orchestration
 
 Use explicit orchestration for complex tasks:
 
 - Orchestration policy: `.github/orchestration.md`
-
-Rules:
-
 - Plan first, then execute.
 - Complete each phase before moving to the next.
 - Review diffs before finalizing.
 - Validate results against automation requirements.
-- Do not perform large-scale generation without invoking a relevant skill first.
 
 ## Runtime Rules
 
 - Interact in the same language as the user.
 - Keep all code artifacts in English (identifiers, docstrings, comments, docs).
-- Check `Makefile` before suggesting commands. Prefer `make` targets.
-- Prefer `uv` workflows for Python environment management.
+- Prefer `make` targets and `uv` workflows.
 - When implementing or testing changes, create or update documentation in `docs/`.
 - Use absolute imports only.

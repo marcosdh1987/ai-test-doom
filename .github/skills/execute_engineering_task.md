@@ -1,3 +1,8 @@
+---
+name: execute_engineering_task
+description: Use when implementing a feature, fixing a bug, or executing scoped engineering work through governed orchestration.
+---
+
 # Skill: execute_engineering_task
 
 ## Purpose

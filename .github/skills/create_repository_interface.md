@@ -1,3 +1,8 @@
+---
+name: create_repository_interface
+description: Use when defining repository interfaces that isolate persistence details from domain and application logic.
+---
+
 # Skill: create_repository_interface
 
 ## Purpose
