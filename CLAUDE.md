@@ -28,6 +28,10 @@ External synced/vendor skills remain in:
 
 - `.github/skills-external/`
 
+Antigravity uses a separate generated native workspace mirror at:
+
+- `.agents/skills/`
+
 If overlap exists, prefer `.github/skills/` over `.github/skills-external/`.
 
 ## Automation

@@ -185,6 +185,12 @@ Claude Code reads a generated native layout from `.claude/skills/`, including in
 make setup-claude-skills
 ```
 
+Antigravity reads a generated native workspace layout from `.agents/skills/` and `.agents/rules/`. Refresh the skills mirror with:
+
+```bash
+make setup-antigravity-skills
+```
+
 External synced/vendor skills live in `.github/skills-external/`.
 
 ### Level 3 — Automation
@@ -208,7 +214,9 @@ Adapters:
 - Claude Code entrypoint: `CLAUDE.md`
 - Claude Code native skills: `.claude/skills/` generated from `.github/skills/` and `.github/skills-external/`
 - Copilot entrypoint: `.github/copilot-instructions.md`
-- Antigravity-style rules: `.agent/rules/`
+- Antigravity workspace rules: `.agents/rules/`
+- Antigravity native skills: `.agents/skills/` generated from `.github/skills/` and `.github/skills-external/`
+- Antigravity hooks: `.agents/hooks.json`
 
 Documentation template:
 
@@ -228,8 +236,9 @@ Documentation template:
 | `make test` | Run tests with coverage |
 | `make ci` | Run full CI pipeline |
 | `make setup-claude-skills` | Generate `.claude/skills` native symlinks from governed skills |
-| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and refresh Claude skill links |
-| `make purge-external-skills` | Remove all external skills and refresh Claude skill links |
+| `make setup-antigravity-skills` | Generate `.agents/skills` native Antigravity mirror from governed skills |
+| `make sync-skills` | Sync external skills, refresh `skills-lock.json`, and refresh Claude and Antigravity native skill layouts |
+| `make purge-external-skills` | Remove all external skills and refresh Claude and Antigravity native skill layouts |
 | `make template-remote-setup` | Add or update the template upstream remote |
 | `make template-sync-preview` | Fetch template changes and preview incoming commits |
 | `make template-sync-merge` | Merge template branch into current branch |
@@ -284,6 +293,21 @@ make sync-skills
 ```
 
 This syncs complete skill directories to `.github/skills-external/`, refreshes `skills-lock.json`, removes installer temp folders, and refreshes `.claude/skills`. Run `make setup-claude-skills` separately when internal governed skills change and Claude Code needs its native links refreshed.
+
+After sync, the repo also regenerates `.agents/skills/` so Antigravity can discover the governed internal and synced external skills natively. The generated Antigravity mirror writes a hidden manifest to avoid re-importing generated skills on the next `make sync-skills` run.
+
+### Antigravity hooks
+
+The template also ships with workspace-local Antigravity hooks in `.agents/hooks.json`.
+
+These hooks currently:
+
+- block destructive Git reset/clean commands
+- require confirmation for direct `pip` commands
+- nudge direct `pytest` runs toward `make test` or `make test-unit`
+- inject a one-time session reminder to follow governance, `make`, `uv`, and `docs/` update expectations
+
+See `docs/development-hooks.md` for details.
 
 ### Purge all external skills (reset mode)
 

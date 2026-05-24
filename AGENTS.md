@@ -27,9 +27,14 @@ Claude Code native skill links are generated from `.github/skills/` and `.github
 
 - `.claude/skills/`
 
+Antigravity native workspace skills are generated from the same governed sources into:
+
+- `.agents/skills/`
+
 Refresh them with:
 
 - `make setup-claude-skills`
+- `make setup-antigravity-skills`
 
 Also load external synced/vendor skills from:
 

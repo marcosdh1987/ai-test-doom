@@ -9,13 +9,19 @@ Claude Code uses a generated native adapter layout for internal and synced exter
 
 - `.claude/skills/<skill-name>/SKILL.md`
 
+Antigravity uses a generated native workspace layout for the same governed skills:
+
+- `.agents/skills/<skill-name>/SKILL.md`
+- `.agents/rules/GEMINI.md`
+
 Generate it from governed skills with:
 
 ```bash
 make setup-claude-skills
+make setup-antigravity-skills
 ```
 
-The generated Claude files are symlinks back to `.github/skills/*.md` and `.github/skills-external/<skill-name>/`; governed folders remain the source of truth.
+The generated Claude files are symlinks back to `.github/skills/*.md` and `.github/skills-external/<skill-name>/`. The generated Antigravity files are copied into `.agents/skills/` together with a hidden manifest used to distinguish governed output from newly installed ad-hoc skills. Governed folders remain the source of truth.
 
 Default internal skills bundled by template:
 
@@ -55,9 +61,9 @@ What it does:
 4. Keeps existing `.github/skills-external/` entries unless explicitly purged
 5. Regenerates a governed `skills-lock.json` from synced skills (hash + timestamp)
 6. Cleans installer artifacts after sync:
-   - removes `.agents/`
    - removes `.agent/skills/`
 7. Refreshes `.claude/skills/` so Claude Code can discover internal and external skills natively
+8. Refreshes `.agents/skills/` so Antigravity can discover the same governed skills natively
 
 ## Safety behavior
 
@@ -65,14 +71,16 @@ What it does:
 - If source exists but has no skill folders, command exits successfully.
 - If a skill folder is malformed, it is skipped and reported.
 - `skills-lock.json` is always refreshed from `.github/skills-external/`.
-- Cleanup step runs regardless of whether any skill was synced.
+- Generated Antigravity skills are skipped on re-sync by comparing against `.agents/skills/.generated-manifest.tsv`.
+- Cleanup only removes legacy `.agent/skills/`; `.agents/skills/` is now preserved as native Antigravity output.
 
 ## Recommended workflow
 
 1. Keep internal curated skills in `.github/skills/`.
 2. Run `make setup-claude-skills` after internal skill changes so Claude Code can discover them natively.
-3. Install/update external skills via your CLI tool (for example `npx skills ...`).
-4. Run `make sync-skills` to normalize external vendor skills into `.github/skills-external/` and refresh `.claude/skills/`.
+3. Run `make setup-antigravity-skills` after internal skill changes so Antigravity can discover them natively.
+4. Install/update external skills via your CLI tool (for example `npx skills ...`).
+5. Run `make sync-skills` to normalize external vendor skills into `.github/skills-external/` and refresh both `.claude/skills/` and `.agents/skills/`.
 
 ## Purge external skills (reset template)
 
@@ -85,7 +93,8 @@ make purge-external-skills
 What it does:
 
 1. Removes all synced external skills from `.github/skills-external/`
-2. Removes temporary installer folders (`.agents/`, `.agent/skills/`)
+2. Removes temporary legacy installer folders (`.agent/skills/`) and resets generated `.agents/skills/`
 3. Removes governed lock metadata (`skills-lock.json`)
 4. Recreates `.github/skills-external/` as an empty folder
 5. Refreshes `.claude/skills/` so external native links are removed
+6. Refreshes `.agents/skills/` so only governed internal skills remain available to Antigravity

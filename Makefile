@@ -377,33 +377,115 @@ setup-claude-skills:
 	fi; \
 	echo "✅ Claude Code skills ready in $$DEST (internal=$$created external=$$external)"
 
+setup-antigravity-skills:
+	@set -e; \
+	INTERNAL_SRC=".github/skills"; \
+	EXTERNAL_SRC=".github/skills-external"; \
+	DEST=".agents/skills"; \
+	MANIFEST="$$DEST/.generated-manifest.tsv"; \
+	echo "🧩 Generating Antigravity native skills..."; \
+	mkdir -p "$$DEST"; \
+	tmp_manifest="$$(mktemp)"; \
+	touch "$$tmp_manifest"; \
+	created=0; \
+	for skill_file in "$$INTERNAL_SRC"/*.md; do \
+		[ -f "$$skill_file" ] || continue; \
+		skill_name="$$(basename "$$skill_file" .md)"; \
+		[ "$$skill_name" != "README" ] || continue; \
+		skill_dest="$$DEST/$$skill_name"; \
+		if [ -e "$$skill_dest" ] && [ ! -d "$$skill_dest" ]; then \
+			echo "❌ Refusing to overwrite non-directory $$skill_dest"; \
+			rm -f "$$tmp_manifest"; \
+			exit 1; \
+		fi; \
+		rm -rf "$$skill_dest"; \
+		mkdir -p "$$skill_dest"; \
+		cp "$$skill_file" "$$skill_dest/SKILL.md"; \
+		folder_hash="$$(cd "$$skill_dest" && { find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s\n' "$$file"; shasum -a 256 "$$file"; done; } | shasum -a 256 | awk '{print $$1}')"; \
+		printf '%s\t%s\n' "$$skill_name" "$$folder_hash" >> "$$tmp_manifest"; \
+		echo "✅ Generated internal $$skill_name"; \
+		created=$$((created + 1)); \
+	done; \
+	external=0; \
+	if [ -d "$$EXTERNAL_SRC" ]; then \
+		for skill_dir in "$$EXTERNAL_SRC"/*; do \
+			[ -d "$$skill_dir" ] || continue; \
+			skill_name="$$(basename "$$skill_dir")"; \
+			if [ -f "$$INTERNAL_SRC/$$skill_name.md" ]; then \
+				echo "ℹ️  Skipping external $$skill_name because an internal skill has precedence"; \
+				continue; \
+			fi; \
+			if [ ! -f "$$skill_dir/SKILL.md" ]; then \
+				echo "⚠️  Skipping external $$skill_name (missing SKILL.md)"; \
+				continue; \
+			fi; \
+			skill_dest="$$DEST/$$skill_name"; \
+			if [ -e "$$skill_dest" ] && [ ! -d "$$skill_dest" ]; then \
+				echo "❌ Refusing to overwrite non-directory $$skill_dest"; \
+				rm -f "$$tmp_manifest"; \
+				exit 1; \
+			fi; \
+			rm -rf "$$skill_dest"; \
+			mkdir -p "$$skill_dest"; \
+			cp -R "$$skill_dir"/. "$$skill_dest"/; \
+			folder_hash="$$(cd "$$skill_dest" && { find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s\n' "$$file"; shasum -a 256 "$$file"; done; } | shasum -a 256 | awk '{print $$1}')"; \
+			printf '%s\t%s\n' "$$skill_name" "$$folder_hash" >> "$$tmp_manifest"; \
+			echo "✅ Generated external $$skill_name"; \
+			external=$$((external + 1)); \
+		done; \
+	fi; \
+	if [ -f "$$MANIFEST" ]; then \
+		while IFS=$$'\t' read -r old_skill _; do \
+			[ -n "$$old_skill" ] || continue; \
+			if ! grep -Fq "$$old_skill" "$$tmp_manifest"; then \
+				rm -rf "$$DEST/$$old_skill"; \
+				echo "🧹 Removed stale generated $$old_skill"; \
+			fi; \
+		done < "$$MANIFEST"; \
+	fi; \
+	mv "$$tmp_manifest" "$$MANIFEST"; \
+	echo "✅ Antigravity skills ready in $$DEST (internal=$$created external=$$external)"
+
 # Sync external skills installed ad-hoc into repository-governed folder
 sync-skills:
 	@set -e; \
 	PRIMARY_SRC=".agents/skills"; \
 	FALLBACK_SRC=".agent/skills"; \
 	DEST=".github/skills-external"; \
+	ANTIGRAVITY_MANIFEST=".agents/skills/.generated-manifest.tsv"; \
 	LOCK_FILE="skills-lock.json"; \
 	TIMESTAMP="$$(date -u +"%Y-%m-%dT%H:%M:%SZ")"; \
-	FOUND_SOURCE=0; \
-	if [ -d "$$PRIMARY_SRC" ]; then \
-		SRC="$$PRIMARY_SRC"; \
-		FOUND_SOURCE=1; \
-	elif [ -d "$$FALLBACK_SRC" ]; then \
-		SRC="$$FALLBACK_SRC"; \
-		FOUND_SOURCE=1; \
-	fi; \
-	synced=0; skipped=0; \
-	if [ $$FOUND_SOURCE -eq 1 ]; then \
-		echo "🔄 Syncing skills from $$SRC to $$DEST..."; \
-		mkdir -p "$$DEST"; \
+	found_any_source=0; \
+	synced=0; skipped=0; unchanged=0; \
+	processed_file="$$(mktemp)"; \
+	touch "$$processed_file"; \
+	mkdir -p "$$DEST"; \
+	for SRC in "$$PRIMARY_SRC" "$$FALLBACK_SRC"; do \
+		[ -d "$$SRC" ] || continue; \
+		found_any_source=1; \
+		echo "🔄 Scanning skills from $$SRC..."; \
 		for skill_dir in "$$SRC"/*; do \
 			[ -d "$$skill_dir" ] || continue; \
 			skill_name="$$(basename "$$skill_dir")"; \
+			if grep -Fxq "$$skill_name" "$$processed_file"; then \
+				continue; \
+			fi; \
 			skill_file="$$skill_dir/SKILL.md"; \
 			if [ ! -f "$$skill_file" ]; then \
 				echo "⚠️  Skipping $$skill_name (missing SKILL.md)"; \
 				skipped=$$((skipped + 1)); \
+				printf '%s\n' "$$skill_name" >> "$$processed_file"; \
+				continue; \
+			fi; \
+			folder_hash="$$(cd "$$skill_dir" && { find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s\n' "$$file"; shasum -a 256 "$$file"; done; } | shasum -a 256 | awk '{print $$1}')"; \
+			manifest_hash=""; \
+			if [ "$$SRC" = "$$PRIMARY_SRC" ] && [ -f "$$ANTIGRAVITY_MANIFEST" ]; then \
+				manifest_hash="$$(awk -F '\t' -v name="$$skill_name" '$$1 == name {print $$2}' "$$ANTIGRAVITY_MANIFEST")"; \
+			fi; \
+			if [ -n "$$manifest_hash" ] && [ "$$manifest_hash" = "$$folder_hash" ]; then \
+				echo "ℹ️  Skipping generated $$skill_name from $$SRC"; \
+				unchanged=$$((unchanged + 1)); \
+				printf '%s\n' "$$skill_name" >> "$$processed_file"; \
 				continue; \
 			fi; \
 			rm -rf "$$DEST/$$skill_name"; \
@@ -411,16 +493,15 @@ sync-skills:
 			cp -R "$$skill_dir"/. "$$DEST/$$skill_name"/; \
 			echo "✅ Synced $$skill_name"; \
 			synced=$$((synced + 1)); \
+			printf '%s\n' "$$skill_name" >> "$$processed_file"; \
 		done; \
-		if [ $$synced -eq 0 ] && [ $$skipped -eq 0 ]; then \
-			echo "ℹ️  No skill directories found in $$SRC."; \
-		fi; \
-		echo "📦 Sync summary: synced=$$synced skipped=$$skipped"; \
-		echo "✅ External skills are available in $$DEST"; \
-	else \
+	done; \
+	rm -f "$$processed_file"; \
+	if [ $$found_any_source -eq 0 ]; then \
 		echo "ℹ️  No external skills source found (.agents/skills or .agent/skills)."; \
-		echo "✅ Nothing to sync."; \
 	fi; \
+	echo "📦 Sync summary: synced=$$synced skipped=$$skipped generated_skipped=$$unchanged"; \
+	echo "✅ Governed external skills are available in $$DEST"; \
 	mkdir -p "$$DEST"; \
 	echo "🧾 Generating governed skills lock file ($$LOCK_FILE)..."; \
 	tmp_lock="$$(mktemp)"; \
@@ -448,21 +529,23 @@ sync-skills:
 	printf '\n  }\n}\n' >> "$$tmp_lock"; \
 	mv "$$tmp_lock" "$$LOCK_FILE"; \
 	echo "✅ Lock file updated at $$LOCK_FILE"; \
-	echo "🧹 Cleaning installer artifacts..."; \
-	rm -rf .agents .agent/skills; \
-	echo "✅ Installer artifacts removed (.agents, .agent/skills)"; \
+	echo "🧹 Cleaning legacy installer artifacts..."; \
+	rm -rf .agent/skills; \
+	echo "✅ Legacy installer artifacts removed (.agent/skills)"; \
 	$(MAKE) setup-claude-skills; \
-	echo "✅ Sync complete. External skills are synced and Claude Code native links are refreshed."
+	$(MAKE) setup-antigravity-skills; \
+	echo "✅ Sync complete. Governed external skills are synced and native Claude/Antigravity adapters are refreshed."
 
 # Remove all external skills and related metadata to reset template state
 purge-external-skills:
 	@set -e; \
 	echo "🧨 Purging external skills from repository..."; \
-	rm -rf .github/skills-external .agents .agent/skills; \
+	rm -rf .github/skills-external .agents/skills .agent/skills; \
 	rm -f skills-lock.json; \
 	mkdir -p .github/skills-external; \
 	$(MAKE) setup-claude-skills; \
-	echo "✅ External skills purged (.github/skills-external reset, skills-lock.json removed)"
+	$(MAKE) setup-antigravity-skills; \
+	echo "✅ External skills purged (.github/skills-external reset, skills-lock.json removed, native adapters refreshed)"
 
 # Show help information about available commands
 help:
@@ -510,7 +593,8 @@ help:
 	@echo "  make template-sync-merge Merge template branch into current branch"
 	@echo "  make template-sync-rebase Rebase current branch onto template branch"
 	@echo "  make setup-claude-skills Generate .claude/skills native symlinks from governed skills"
-	@echo "  make sync-skills         Sync external skills to .github/skills-external (additive, no prune)"
+	@echo "  make setup-antigravity-skills Generate .agents/skills native mirror from governed skills"
+	@echo "  make sync-skills         Sync external skills to .github/skills-external and refresh native adapters"
 	@echo "  make purge-external-skills Purge all external skills and reset metadata"
 	@echo "  make clean               Clean cache and generated files"
 	@echo ""
@@ -528,4 +612,4 @@ clean:
 .DEFAULT_GOAL := help
 
 # Declare phony targets
-.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci template-remote-setup template-sync-preview template-sync-merge template-sync-rebase setup-claude-skills sync-skills purge-external-skills
+.PHONY: install setup-hooks run-dev run-api run-question run-interactive build-api run-api-docker stop-docker build-fresh clean help generate-requirements run-batch-test run-batch-test-custom test test-unit format lint lint-fast fix ci template-remote-setup template-sync-preview template-sync-merge template-sync-rebase setup-claude-skills setup-antigravity-skills sync-skills purge-external-skills
