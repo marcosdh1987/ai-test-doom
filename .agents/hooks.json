@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ./.agents/hooks/command_guard.py",
+            "command": "python3 ./hooks/command_guard.py",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
     "PreInvocation": [
       {
         "type": "command",
-        "command": "python3 ./.agents/hooks/invocation_reminder.py",
+        "command": "python3 ./hooks/invocation_reminder.py",
         "timeout": 10
       }
     ]
